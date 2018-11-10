@@ -21,12 +21,17 @@ let s3 = new AWS.S3({
 });
 
 router.get("/:room/admin", function(req, res) {
-    if (!fileExists(`${req.params.room}/${demoFile}`)) {
+    console.log(`Setting up room ${req.params.room}`);
+
+    fileExists(`${req.params.room}/${demoFile}`)
+    .then(() => {
+        getFile(`${req.params.room}/${demoFile}`, res);
+    })
+    .catch(() => {
         let initState = JSON.parse(fs.readFileSync(demoFile, "utf-8"));
         uploadJSON(`${req.params.room}/${demoFile}`, initState);
         res.send(initState);
-    } 
-    else getFile(`${req.params.room}/${demoFile}`, res);
+    });
 });
 
 router.get("/:room", function(req, res) {
@@ -34,24 +39,30 @@ router.get("/:room", function(req, res) {
 });
 
 router.get("/:room/player", function(req, res) {
-    if (!fileExists(`${req.params.room}/${demoFile}`)) {
-        let invalid = {
-            room: req.params.room,
-            "err-msg": "That room does not exist."
-        };
-        res.send(JSON.stringify(invalid));
-    }
-    else {
-        res.send("JSON object telling the player to go to a naming state goes here...");
-        //Once their name is entered, P5.js will keep them in the name entry state 
-        //BUT they will just be waiting for the host to signal the start of the game
-    }
-
     //Check if the room exists in Digital Ocean
     //If not, send cannot join which will be processed and rendered by the user
     //Else tell them to wait until the host closes joining applications 
     //Only once host closes joining applications are roles distributed
     //eval may be your friend later along the line...
+
+    fileExists(`${req.params.room}/${demoFile}`)
+    .then(() => {
+        let valid = {
+            room: req.params.room,
+            msg: `Joined room ${req.params.room}`
+                + `\nJSON object telling the player to go to a naming state goes here...`
+        };
+        res.send(JSON.stringify(valid));
+        //Once their name is entered, P5.js will keep them in the name entry state 
+        //BUT they will just be waiting for the host to signal the start of the game
+    })
+    .catch(() => {
+        let invalid = {
+            room: req.params.room,
+            "err-msg": "That room does not exist."
+        };
+        res.send(JSON.stringify(invalid));
+    });
 });
 
 function uploadJSON(fileName, data) {
@@ -85,18 +96,22 @@ function fileExists(fileName) {
         Bucket: myDigiBucket
     };
 
-    s3.listObjectsV2(params, function (err, data) {
-        if (!err)
-            data.Contents.forEach((element) => {
-                if (element.key == fileName) return true;
-                console.log(`Checked ${element.Key} against ${fileName}.
-                Element Type:\t${typeof element.Key}
-                Filename Type:\t${typeof fileName}
-                Result 1:\t${element.Key == fileName}
-                Result 2:\t${element.Key === fileName}`);
-            });
-        else console.log(err);
+    let myPromise = new Promise((resolve, reject) => {
+        s3.listObjectsV2(params, function (err, data) {
+            if (!err) {
+                let files = [];
+                data.Contents.forEach((element) => {
+                    files.push(element.Key);
+                });
+
+                if (files.includes(fileName)) resolve();
+                else reject();
+            }
+            else console.log(`Error in fileExists ${err}`);
+        });
     });
+
+    return myPromise;
 }
 
 function createState(state) {
