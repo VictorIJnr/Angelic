@@ -1,4 +1,5 @@
 {
+    "room": 101,
     "state": "PLAYING",
     "playState": "VOTING",
     "numPlayers": 1,

@@ -1,5 +1,5 @@
 enum GameState {
-    MENU, HOSTING, ROLES, PLAYING, RESULTS;
+    MENU, HOSTING, NAMING, ROLES, PLAYING, RESULTS;
 }
 
 enum PlayState {
@@ -32,6 +32,21 @@ class Game {
 
     void keyRelease() {
 
+    }
+
+    /*
+        Updates the current state of game.
+    */
+    void updateGameState() {
+        
+    }
+    
+    /*
+        Update the current state of play.
+        Only utilised while the GameState is PLAYING.
+    */
+    void updatePlayState() {
+        
     }
 
 }
