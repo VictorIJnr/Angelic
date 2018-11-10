@@ -1,5 +1,6 @@
+//LOBBY indicates waiting for more players to join the game
 enum GameState {
-    MENU, HOSTING, NAMING, ROLES, PLAYING, RESULTS;
+    MENU, HOSTING, NAMING, LOBBY, ROLES, PLAYING, RESULTS;
 }
 
 enum PlayState {

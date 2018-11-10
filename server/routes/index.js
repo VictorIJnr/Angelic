@@ -7,6 +7,7 @@ let gameState = {};
 let gameStateFile = "state.json";
 let invalidRoom = "invalidRoom.json";
 let demoFile = "demoState.json";
+let demoSendFile = "demoSendState.json";
 
 let myDigiBucket = "gid";
 let myDigiRegion = "ams3"
@@ -25,10 +26,13 @@ router.get("/:room/admin", function(req, res) {
 
     fileExists(`${req.params.room}/${demoFile}`)
     .then(() => {
-        getFile(`${req.params.room}/${demoFile}`, res);
+        getFile(`${req.params.room}/${demoFile}`)
+        .then((data) => {
+            res.send(data);
+        });
     })
     .catch(() => {
-        let initState = JSON.parse(fs.readFileSync(demoFile, "utf-8"));
+        let initState = createState(demoFile);
         uploadJSON(`${req.params.room}/${demoFile}`, initState);
         res.send(initState);
     });
@@ -47,23 +51,54 @@ router.get("/:room/player", function(req, res) {
 
     fileExists(`${req.params.room}/${demoFile}`)
     .then(() => {
-        let valid = {
-            room: req.params.room,
-            msg: `Joined room ${req.params.room}`
-                + `\nJSON object telling the player to go to a naming state goes here...`
-        };
-        res.send(JSON.stringify(valid));
-        //Once their name is entered, P5.js will keep them in the name entry state 
-        //BUT they will just be waiting for the host to signal the start of the game
+        //Checks the player has previously joined this room
+        // if (!req.cookies.playerName && req.cookies.room == req.params.room) {
+        if (true) {
+            let initState = createState(demoSendFile);
+            initState.state = "NAMING";
+            initState.msg = `Joined room ${req.params.room}`
+                + `\nJSON object telling the player to go to a naming state goes here...`;
+
+            res.send(JSON.stringify(initState));
+        }
+        //Once their name is entered, players will be moved to the lobby state. 
+        //They will then just be waiting for the host to start the game
     })
     .catch(() => {
         let invalid = {
             room: req.params.room,
             "err-msg": "That room does not exist."
         };
+
         res.send(JSON.stringify(invalid));
     });
 });
+
+router.post("/:room/player", function(req, res) {
+    uniquePlayer(req.body.myName, req.params.room)
+    .then(() => {
+        res.cookie("playerName", req.body.myName);
+
+        //The player file will be updated with information later
+        //such as their role and who they've voted against.
+        uploadJSON(`${req.params.room}/${req.body.myName}`, {});
+
+        //Changing the state for the player
+        let newState = createState(demoSendFile);
+        newState.state = "LOBBY";
+        console.log(`Moved ${req.body.myName} to the lobby.`);
+
+        res.send(JSON.stringify(newState));
+    })
+    .catch((err) => {
+        console.log(`Error from player post:\n${err}`);
+        res.send(JSON.stringify({"err-msg": "That name has already been taken."}));
+    });
+});
+
+function createState(stateFile) {
+    return JSON.parse(fs.readFileSync(stateFile, "utf-8"));
+}
 
 function uploadJSON(fileName, data) {
     let digiParams = {
@@ -77,20 +112,25 @@ function uploadJSON(fileName, data) {
     s3.upload(digiParams, (err, data) => {if (err) console.log(err);})
 }
 
-function getFile(fileName, res) {
+function getFile(fileName) {
     let digiParams = {
         Bucket: myDigiBucket,
         Key: fileName
     }
 
-    s3.getObject(digiParams, (err, data) => {
-        console.log("From get file");
-        console.log(JSON.stringify(data));
-        res.send(JSON.stringify(data));
+    let filePromise = new Promise((resolve, reject) => {
+        s3.getObject(digiParams, (err, data) => {
+            if (err) reject(err);
+            else (resolve(JSON.stringify(data)))
+        });
     });
+
+    return filePromise;
 }
 
-//This may need a promise or make the s3 call sync
+/**
+ * Checks for the existence of a file on Digital Ocean 
+ * */
 function fileExists(fileName) {
     let params = {
         Bucket: myDigiBucket
@@ -107,15 +147,25 @@ function fileExists(fileName) {
                 if (files.includes(fileName)) resolve();
                 else reject();
             }
-            else console.log(`Error in fileExists ${err}`);
+            else reject(err);
         });
     });
 
     return myPromise;
 }
 
-function createState(state) {
+/*
+ * Determines whether a JSON object pertaining to a player exists on DigitalOcean 
+*/
+function uniquePlayer(playerName, room) {
+    //I don't need the data returned from getFile, the presence of the file is enough
+    let newPlayer = new Promise((resolve, reject) => {
+        fileExists(`${room}/${playerName}`)
+        .then(() => reject())
+        .catch(() => resolve());
+    });
 
+    return newPlayer;
 }
 
 module.exports = router;

@@ -1,12 +1,16 @@
 let myGame;
 
 function setup() {
-    fill(196);
-    createCanvas(screen.width, screen.height);
+    fill(0);
+    createCanvas(screen.width / 2, screen.height / 2);
+    textAlign(CENTER);
 
     myGame = new Game();
 }
 
 function draw() {
     background("#f7f1e3");
+
+    rectMode(CORNER);
+    myGame.update();
 }
