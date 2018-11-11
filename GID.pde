@@ -18,7 +18,7 @@ void setup() {
     focused = true;
     if (!isSpectre) surface.setSize(1920, 1080);
     
-    fill(196);
+    fill(51);
     //noCursor();
     // myFont = createFont("Aldo.ttf", 64);
     // textFont(myFont);

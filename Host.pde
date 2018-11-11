@@ -16,6 +16,8 @@ class Host {
 
     URL gameURL;
     URLConnection myConn;
+    
+    String baseURL = "http://localhost:20793";
 
     String gameRoom;
     boolean pinged = false;
@@ -24,7 +26,7 @@ class Host {
         genGameRoom();
 
         try {
-            gameURL = new URL(String.format("http://localhost:20793/%s/admin", gameRoom));
+            gameURL = new URL(String.format("%s/admin", baseURL));
         }
         catch (IOException ioe) {
             ioe.printStackTrace();
@@ -41,13 +43,15 @@ class Host {
         // if (myClient != null) process();
     }
 
+    /*
+    * Creates the room to play the game
+    */
     void ping() {
         if (!pinged) {
             try {
                 myConn = gameURL.openConnection();
                 myConn.connect();
 
-                System.out.println(gameURL.getPath());
                 System.out.println("What, no errors?");
 
                 BufferedReader in = new BufferedReader(new InputStreamReader(myConn.getInputStream()));
@@ -72,13 +76,33 @@ class Host {
         Generates the code which will be used for the game room.
     */
     void genGameRoom() {
-        char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
         StringBuilder code = new StringBuilder();
         Random random = new Random();
 
         for (int i = 0; i < 5; i++) code.append((char) (random.nextInt(26) + 65));
         
         gameRoom = code.toString();
-        System.out.println(gameRoom);
+        baseURL += "/" + gameRoom;
+    }
+
+    ArrayList<String> sendRequest(String endpoint) {
+        ArrayList<String> response = new ArrayList<String>();
+
+        try {
+            URL reqURL = new URL(String.format("%s/%s", baseURL, endpoint));
+            URLConnection reqConn = reqURL.openConnection();
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(reqConn.getInputStream()));
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) 
+                response.add(inputLine);
+            in.close();
+        } 
+        catch (IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+
+        return response;
     }
 }

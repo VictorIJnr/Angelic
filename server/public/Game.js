@@ -11,6 +11,7 @@ class Game {
             console.log(data);
             //PRXIT's a pretty cool room name
             //DYGYD is a thingy, I can't remember the name...
+            //KEXIA is a much cooler name though like damn...
         }, (err) => console.log(err));
     }
 
@@ -18,23 +19,13 @@ class Game {
         if (this.gameData) {
             switch (this.gameData.state) {
                 case "NAMING":
-                    this.userInput.changed(() => {
-                        // this.player.setName(this.userInput.value());
-                        //This line should be temporary
-                        this.gameData.myName = this.userInput.value();
-                        let postData = {
-                            myName: this.userInput.value()
-                        }
-
-                        httpPost(`${this.endpoint}/player`, "json", postData, 
-                        (response) => {
-                            this.gameData.state = response.state;
-                        });
-                    });
+                    this.enteredName();
                     break;
                 case "LOBBY":
-                    // rectMode(CENTER);
+                    this.enteredName();
+                    rectMode(CENTER);
                     console.log("Moved to the lobby");
+                    fill(51);
                     text(`Your name is ${this.gameData.myName}\n`
                         + `Wait until for other players to join the game or until the host `
                         + `decides to start the game...`,
@@ -45,5 +36,29 @@ class Game {
                     break;
             }
         }
+    }
+
+    pingState() {
+        //Only update/look for a new state if the game's state has already
+        //been initialised.
+        if (this.gameData) {
+            httpGet()
+        }
+    }
+
+    enteredName() {
+        this.userInput.changed(() => {
+            // this.player.setName(this.userInput.value());
+            //The following line should be temporary
+            this.gameData.myName = this.userInput.value();
+            let postData = {
+                myName: this.userInput.value()
+            }
+
+            httpPost(`${this.endpoint}/player`, "json", postData, 
+            (response) => {
+                this.gameData.state = response.state;
+            });
+        });
     }
 }

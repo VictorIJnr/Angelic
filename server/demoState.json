@@ -3,9 +3,9 @@
     "state": "PLAYING",
     "playState": "VOTING",
     "numPlayers": 1,
-    "players": {
-        "Azreal": "Angel"
-    },
+    "players": [
+        "Azreal"
+    ],
     "votes": {
         "Azreal": "Guilty"
     }

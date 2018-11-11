@@ -26,7 +26,7 @@ router.get("/:room/admin", function(req, res) {
 
     fileExists(`${req.params.room}/${demoFile}`)
     .then(() => {
-        getFile(`${req.params.room}/${demoFile}`)
+        getStateFile(req.params.room)
         .then((data) => {
             res.send(data);
         });
@@ -38,7 +38,57 @@ router.get("/:room/admin", function(req, res) {
     });
 });
 
+/** 
+ * Endpoint to allow the host to see all of the connected players
+*/
+router.get("/:room/admin/players", function(req, res) {
+    let digiParams = {
+        Bucket: myDigiBucket,
+        Prefix: `${req.params.room}/`
+    };
+
+    console.log("\nAdmin requested all the players.");
+
+    s3.listObjectsV2(digiParams, (err, data) => {
+        if (err) {
+            console.error(err); 
+            res.send(err);
+        }
+        else {
+            let players = [];
+            
+            data.Contents.forEach((file) => {
+                let fileName = file.Key.substring(6);
+                if (fileName != `${demoFile}`) players.push(fileName);
+            });
+
+            //Sending each player name on a separate line
+            res.send(players.join("\n"));
+        }
+    });
+});
+
+/**
+ * Endpoint to allow the host to start the game for all players
+ */
+router.get("/:room/admin/start", function(req, res) {
+    console.log("Start signal received from host");
+
+    getStateFile(req.params.room)
+    .then((data) => {
+        let newState = data;
+        newState.state = "ROLES";
+        newState.playState = "DAY";
+
+        updateStateFile(req.params.room, newState);
+        console.log(newState);
+        res.send(newState);
+    })
+    .catch((err) => res.send(err));
+});
+
 router.get("/:room", function(req, res) {
+    res.cookie("room", req.params.room);
     res.render("index");
 });
 
@@ -74,28 +124,69 @@ router.get("/:room/player", function(req, res) {
     });
 });
 
+/**
+ * Endpoint to allow users to choose/change their name
+ */
 router.post("/:room/player", function(req, res) {
+    //TODO
+    //This is TODO af, I'm just really tired right now...
+    /* if (req.cookies.playerName && req.cookies.room == req.params.room) {
+        uniquePlayer(req.body.myName, req.params.room)
+        .then()
+    } else {
+
+    } */
     uniquePlayer(req.body.myName, req.params.room)
     .then(() => {
+        //If the user is changing their name
+        if (req.cookies.playerName && req.cookies.room == req.params.room) {
+            getStateFile()
+            .then((data) => {
+                let newPlayers = data.players;
+                let index = newPlayers.indexOf(req.cookies.playerName);
+
+                //This SHOULD always be true, can't be too safe though
+                if (index != -1) newPlayers.splice(index, 1);
+                updateStateFile()
+                .then(() => addPlayer(req.body.myName, req.params.room))
+                .catch((err) => console.error(err));
+
+                let digiParams = {
+                    Bucket: myDigiBucket,
+                    Key: `${req.params.room}/${req.cookies.playerName}`
+                }
+
+                console.log(`Delete key ${digiParams.Key}`);
+
+                s3.deleteObject(digiParams, (err, data) => {
+                    if (err) console.error(err);
+                });
+            })
+            .catch((err) => console.error(err));
+        }
+        else {
+            addPlayer(req.body.myName, req.params.room);
+    
+            //Changing the state for the player
+            let newState = createState(demoSendFile);
+            newState.state = "LOBBY";
+            console.log(`Moved ${req.body.myName} to the lobby.`);
+    
+            // res.send(JSON.stringify(newState));
+        }
         res.cookie("playerName", req.body.myName);
-
-        //The player file will be updated with information later
-        //such as their role and who they've voted against.
-        uploadJSON(`${req.params.room}/${req.body.myName}`, {});
-
-        //Changing the state for the player
-        let newState = createState(demoSendFile);
-        newState.state = "LOBBY";
-        console.log(`Moved ${req.body.myName} to the lobby.`);
-
-        res.send(JSON.stringify(newState));
+        res.send(JSON.stringify({state: "LOBBY"}));
     })
-    .catch((err) => {
-        console.log(`Error from player post:\n${err}`);
+    .catch(() => {
+        // console.error(`Error from player post:\n${err}`);
         res.send(JSON.stringify({"err-msg": "That name has already been taken."}));
     });
 });
 
+/**
+ * Initialises a variable to the local state file specified.
+ * @param {String} stateFile 
+ */
 function createState(stateFile) {
     return JSON.parse(fs.readFileSync(stateFile, "utf-8"));
 }
@@ -109,23 +200,68 @@ function uploadJSON(fileName, data) {
         ContentType: "application/json"
     }
 
-    s3.upload(digiParams, (err, data) => {if (err) console.log(err);})
+    let upPromise = new Promise((resolve, reject) => {
+        s3.upload(digiParams, (err, data) => {
+            if (err) {
+                console.error(`Error uploading file.\n${err}`);
+                reject(err);
+            }
+            else resolve(data);
+        });
+    });
+
+    return upPromise;
 }
 
+/** 
+ * Gets the specified file from Digital Ocean.
+ * @param {String} fileName the file to be retrieved.
+*/
 function getFile(fileName) {
     let digiParams = {
         Bucket: myDigiBucket,
-        Key: fileName
+        Key: fileName,
+        ResponseContentType: "application/json"
     }
 
     let filePromise = new Promise((resolve, reject) => {
         s3.getObject(digiParams, (err, data) => {
             if (err) reject(err);
-            else (resolve(JSON.stringify(data)))
+            else resolve(JSON.parse(data.Body))
         });
     });
 
     return filePromise;
+}
+
+/**
+ * Gets the state file for a specified room.
+ * @param {String} room the room which the state is to be retrieved from 
+ */
+function getStateFile(room) {
+    return getFile(`${room}/${demoFile}`);
+}
+
+/**
+ * Updates the state of the provided room.
+ * @param {String} room the room to have its state updated
+ * @param {Object} newFields the fields to update/add 
+ */
+function updateStateFile(room, newFields) {
+    return Promise((resolve, reject) => {
+        getStateFile(room)
+        .then((data) => {
+            let newState = {...data, ...newFields};
+            console.log(`THE NEW STAET \n${newState}\n`);
+    
+            uploadJSON(`${room}/${demoFile}`, newState)
+            .then(resolve).catch(reject);
+        })
+        .catch((err) => {
+            console.log(`Error updating room state.\n${err}`);
+            reject(err);
+        });
+    });
 }
 
 /**
@@ -144,6 +280,7 @@ function fileExists(fileName) {
                     files.push(element.Key);
                 });
 
+                //using a subsequent .then() to act as a "truthy" branch
                 if (files.includes(fileName)) resolve();
                 else reject();
             }
@@ -158,14 +295,32 @@ function fileExists(fileName) {
  * Determines whether a JSON object pertaining to a player exists on DigitalOcean 
 */
 function uniquePlayer(playerName, room) {
-    //I don't need the data returned from getFile, the presence of the file is enough
+    //I don't need the data from the file, its presence is enough
     let newPlayer = new Promise((resolve, reject) => {
         fileExists(`${room}/${playerName}`)
-        .then(() => reject())
+        .then((err) => reject(err))
         .catch(() => resolve());
     });
 
     return newPlayer;
+}
+
+/**
+ * Adds a new player to the game
+ * @param {String} playerName the new player added to the game 
+ * @param {String} room the room which the player is joining 
+ */
+function addPlayer(playerName, room) {
+    //The player file will be updated with information later
+    //such as their role and who they've voted against.
+    uploadJSON(`${room}/${playerName}`, {});
+
+    getStateFile(room)
+    .then((data) => {
+        data.players.push(playerName);
+        uploadJSON(`${room}/${demoFile}`, data);
+    })
+    .catch((err) => console.error(err));
 }
 
 module.exports = router;
