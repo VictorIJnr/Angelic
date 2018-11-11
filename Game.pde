@@ -8,6 +8,10 @@ enum PlayState {
 }
 
 class Game {
+    static final float ROLE_RATIO = 0.4;
+
+    GameState myState = GameState.HOSTING;
+    PlayState myPlayState = PlayState.DAY;
 
     Menu myMenu = new Menu();
     Chat myChat = new Chat();
@@ -37,12 +41,25 @@ class Game {
 
     void keyPress() {
         switch (key) {
-            case 'p':    
-            case 'P':
-                playerNames = hostGame.sendRequest("admin/players");
+            case 'i':    
+            case 'I':
+                JSONObject players;
+
+                int numAngels = allPlayers.size() * ROLE_RATIO;
+                ArrayList<Player> roleless = new ArrayList<Player>();
+                roleless.addAll(allPlayers);
+
+                for (int i = 0; i < numAngels; i++) {
+                    int randomPlayer = random(roleless.size());
+                    roleless.get(randomPlayer).setRole(Roles.ANGEL);
+                    roleless.remove(randomPlayer);
+                }
+
+                for (Player mortal : roleless) mortal.setRole(Roles.Human);
                 break;
             case 'o':    
             case 'O':
+                myState = GameState.ROLES;
                 ArrayList<String> startMsg = new ArrayList<String>();
                 startMsg = hostGame.sendRequest("admin/start");
 
@@ -51,6 +68,10 @@ class Game {
                     fill(51);
                     System.out.println(line);
                 }
+                break;
+            case 'p':    
+            case 'P':
+                playerNames = hostGame.sendRequest("admin/players");
                 break;
             default:
                 break;

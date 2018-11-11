@@ -1,12 +1,7 @@
 {
-    "room": 101,
-    "state": "PLAYING",
-    "playState": "VOTING",
-    "numPlayers": 1,
-    "players": [
-        "Azreal"
-    ],
-    "votes": {
-        "Azreal": "Guilty"
-    }
+    "state": "HOSTING",
+    "playState": "DAY",
+    "numPlayers": 0,
+    "players": [],
+    "votes": {}
 }

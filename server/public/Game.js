@@ -24,15 +24,20 @@ class Game {
                 case "LOBBY":
                     this.enteredName();
                     rectMode(CENTER);
-                    console.log("Moved to the lobby");
                     fill(51);
                     text(`Your name is ${this.gameData.myName}\n`
                         + `Wait until for other players to join the game or until the host `
                         + `decides to start the game...`,
-                        width / 3, height / 3, width * 2/3, height / 2);
+                        width / 2, height / 2, width * 2/3, height / 2);
+                    break;
+                case "ROLES": 
+                    console.log("Role Distribution.");
+                    break;
+                    case "PLAYING":
+                    console.log("Playing the game.");
                     break;
                 default:
-                    console.log("State not handled...");
+                    console.log(`State not handled...\n${this.gameData.state}`);
                     break;
             }
         }
@@ -42,7 +47,7 @@ class Game {
         //Only update/look for a new state if the game's state has already
         //been initialised.
         if (this.gameData) {
-            httpGet()
+            httpGet();
         }
     }
 

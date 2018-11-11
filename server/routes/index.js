@@ -69,6 +69,13 @@ router.get("/:room/admin/players", function(req, res) {
 });
 
 /**
+ * Endpoint to allow for the updating of connected players.
+ */
+router.post("/:room/admin/players", function(req, res) {
+    updateStateFile(req.params.room, req.body.players);
+});
+
+/**
  * Endpoint to allow the host to start the game for all players
  */
 router.get("/:room/admin/start", function(req, res) {
@@ -88,12 +95,11 @@ router.get("/:room/admin/start", function(req, res) {
 });
 
 router.get("/:room", function(req, res) {
-    res.cookie("room", req.params.room);
     res.render("index");
 });
 
 router.get("/:room/player", function(req, res) {
-    //Check if the room exists in Digital Ocean
+    //Check if the room exists in DigitalOcean
     //If not, send cannot join which will be processed and rendered by the user
     //Else tell them to wait until the host closes joining applications 
     //Only once host closes joining applications are roles distributed
@@ -128,27 +134,26 @@ router.get("/:room/player", function(req, res) {
  * Endpoint to allow users to choose/change their name
  */
 router.post("/:room/player", function(req, res) {
-    //TODO
-    //This is TODO af, I'm just really tired right now...
-    /* if (req.cookies.playerName && req.cookies.room == req.params.room) {
+    //If the user is changing their name
+    if (req.cookies.playerName && req.cookies.room == req.params.room) {
         uniquePlayer(req.body.myName, req.params.room)
-        .then()
-    } else {
-
-    } */
-    uniquePlayer(req.body.myName, req.params.room)
-    .then(() => {
-        //If the user is changing their name
-        if (req.cookies.playerName && req.cookies.room == req.params.room) {
-            getStateFile()
+        .then(() => {
+            getStateFile(req.params.room)
             .then((data) => {
                 let newPlayers = data.players;
                 let index = newPlayers.indexOf(req.cookies.playerName);
 
                 //This SHOULD always be true, can't be too safe though
                 if (index != -1) newPlayers.splice(index, 1);
-                updateStateFile()
-                .then(() => addPlayer(req.body.myName, req.params.room))
+                updateStateFile(req.params.room, {players: newPlayers})
+                .then(() => {
+                    console.log(`Renamed ${req.cookies.playerName} to ${req.body.myName}.`);
+                    addPlayer(req.body.myName, req.params.room);
+
+                    //Only update the player name once they've been added
+                    res.cookie("playerName", req.body.myName);
+                    res.send(JSON.stringify({state: "LOBBY"}));
+                })
                 .catch((err) => console.error(err));
 
                 let digiParams = {
@@ -156,15 +161,20 @@ router.post("/:room/player", function(req, res) {
                     Key: `${req.params.room}/${req.cookies.playerName}`
                 }
 
-                console.log(`Delete key ${digiParams.Key}`);
-
+                //Deleting the previous player from the "database" (DigitalOcean)
                 s3.deleteObject(digiParams, (err, data) => {
                     if (err) console.error(err);
                 });
             })
             .catch((err) => console.error(err));
-        }
-        else {
+        })
+        .catch(() => {
+            res.send(JSON.stringify({"err-msg": "That name has already been taken."}));
+        });
+        
+    } else {
+        uniquePlayer(req.body.myName, req.params.room)
+        .then(() => {
             addPlayer(req.body.myName, req.params.room);
     
             //Changing the state for the player
@@ -172,15 +182,15 @@ router.post("/:room/player", function(req, res) {
             newState.state = "LOBBY";
             console.log(`Moved ${req.body.myName} to the lobby.`);
     
-            // res.send(JSON.stringify(newState));
-        }
-        res.cookie("playerName", req.body.myName);
-        res.send(JSON.stringify({state: "LOBBY"}));
-    })
-    .catch(() => {
-        // console.error(`Error from player post:\n${err}`);
-        res.send(JSON.stringify({"err-msg": "That name has already been taken."}));
-    });
+            //Used to associate each player with their room.
+            res.cookie("room", req.params.room);
+            res.cookie("playerName", req.body.myName);
+            res.send(JSON.stringify(newState));
+        })
+        .catch(() => {
+            res.send(JSON.stringify({"err-msg": "That name has already been taken."}));
+        });
+    }
 });
 
 /**
@@ -214,7 +224,7 @@ function uploadJSON(fileName, data) {
 }
 
 /** 
- * Gets the specified file from Digital Ocean.
+ * Gets the specified file from DigitalOcean.
  * @param {String} fileName the file to be retrieved.
 */
 function getFile(fileName) {
@@ -248,11 +258,10 @@ function getStateFile(room) {
  * @param {Object} newFields the fields to update/add 
  */
 function updateStateFile(room, newFields) {
-    return Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         getStateFile(room)
         .then((data) => {
             let newState = {...data, ...newFields};
-            console.log(`THE NEW STAET \n${newState}\n`);
     
             uploadJSON(`${room}/${demoFile}`, newState)
             .then(resolve).catch(reject);
@@ -265,7 +274,8 @@ function updateStateFile(room, newFields) {
 }
 
 /**
- * Checks for the existence of a file on Digital Ocean 
+ * Checks for the existence of a file on DigitalOcean 
+ * @param {String} fileName the file to check for its existence
  * */
 function fileExists(fileName) {
     let params = {
@@ -291,9 +301,11 @@ function fileExists(fileName) {
     return myPromise;
 }
 
-/*
- * Determines whether a JSON object pertaining to a player exists on DigitalOcean 
-*/
+/**
+ * Determines whether a player name has already been taken on DigitalOcean
+ * @param playerName the name to check
+ * @param room the room to check for the player
+ */
 function uniquePlayer(playerName, room) {
     //I don't need the data from the file, its presence is enough
     let newPlayer = new Promise((resolve, reject) => {
@@ -318,7 +330,8 @@ function addPlayer(playerName, room) {
     getStateFile(room)
     .then((data) => {
         data.players.push(playerName);
-        uploadJSON(`${room}/${demoFile}`, data);
+        data.numPlayers = data.players.length;
+        updateStateFile(room, data);
     })
     .catch((err) => console.error(err));
 }
