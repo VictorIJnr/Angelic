@@ -25,16 +25,12 @@ class Player {
         JSONArray retVotes = new JSONArray();
 
         int i = 0;
-        for (Votes votes : myVotes) {
-            //Each set of votes, indicate one day of voting.
-            JSONObject voteDay = new JSONObject();
-            for (Vote vote : votes) {
-                voteDay.setString()
-            }
-        }
+        for (Votes votes : myVotes)
+            retVotes.setJSONArray(i++, votes.toJSON());
 
         retObj.setString("name", myName);
         retObj.setString("role", myRole.name());
+        retObj.setJSONArray("votes", retVotes);
 
         return retObj;
     }

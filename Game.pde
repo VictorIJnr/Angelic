@@ -43,7 +43,7 @@ class Game {
         switch (key) {
             case 'i':    
             case 'I':
-                JSONObject players;
+                JSONArray players;
 
                 int numAngels = allPlayers.size() * ROLE_RATIO;
                 ArrayList<Player> roleless = new ArrayList<Player>();
@@ -56,6 +56,10 @@ class Game {
                 }
 
                 for (Player mortal : roleless) mortal.setRole(Roles.Human);
+
+                int i = 0;
+                for (Player player : allPlayers) players.setJSONObject(i++, player.toJSON());
+                
                 break;
             case 'o':    
             case 'O':

@@ -98,12 +98,15 @@ router.get("/:room", function(req, res) {
     res.render("index");
 });
 
+/**
+ * Endpoint for connecting a player to the game room.
+ */
 router.get("/:room/player", function(req, res) {
     //Check if the room exists in DigitalOcean
     //If not, send cannot join which will be processed and rendered by the user
     //Else tell them to wait until the host closes joining applications 
     //Only once host closes joining applications are roles distributed
-    //eval may be your friend later along the line...
+    //eval may be my friend later along the line...
 
     fileExists(`${req.params.room}/${demoFile}`)
     .then(() => {
@@ -194,6 +197,16 @@ router.post("/:room/player", function(req, res) {
 });
 
 /**
+ * Endpoint for players to query their current state.
+ * As maintained in DigitalOcean
+ */
+router.get("/:room/player/state", function(req, res) {
+    getFile(req.params.room, req.cookies.playerName)
+    .then((data) => res.send(data))
+    .catch((err) => res.send(err));
+});
+
+/**
  * Initialises a variable to the local state file specified.
  * @param {String} stateFile 
  */
@@ -225,9 +238,10 @@ function uploadJSON(fileName, data) {
 
 /** 
  * Gets the specified file from DigitalOcean.
+ * @param {String} room the room code for the file
  * @param {String} fileName the file to be retrieved.
 */
-function getFile(fileName) {
+function getFile(room, fileName) {
     let digiParams = {
         Bucket: myDigiBucket,
         Key: fileName,
@@ -249,7 +263,7 @@ function getFile(fileName) {
  * @param {String} room the room which the state is to be retrieved from 
  */
 function getStateFile(room) {
-    return getFile(`${room}/${demoFile}`);
+    return getFile(room, demoFile);
 }
 
 /**
