@@ -72,7 +72,18 @@ router.get("/:room/admin/players", function(req, res) {
  * Endpoint to allow for the updating of connected players.
  */
 router.post("/:room/admin/players", function(req, res) {
-    updateStateFile(req.params.room, req.body.players);
+    console.log("Roles received from host");
+    let players = req.body.player_data;
+
+    players.forEach((player) => {
+        getFile(req.params.room, player.name)
+        .then((data) => {
+            let newPlayer = {...data, ...player};
+            uploadJSON(`${req.params.room}/${player.name}`, newPlayer);
+            res.send("Received players.");
+        })
+        .catch((err) => res.send(err));
+    });
 });
 
 /**
@@ -214,6 +225,11 @@ function createState(stateFile) {
     return JSON.parse(fs.readFileSync(stateFile, "utf-8"));
 }
 
+/** 
+ * Uploads JSON to a new file in DigitalOcean.
+ * @param {String} fileName file to store the data
+ * @param {Object} data the data to store
+*/
 function uploadJSON(fileName, data) {
     let digiParams = {
         Bucket: myDigiBucket,
@@ -244,7 +260,7 @@ function uploadJSON(fileName, data) {
 function getFile(room, fileName) {
     let digiParams = {
         Bucket: myDigiBucket,
-        Key: fileName,
+        Key: `${room}/${fileName}`,
         ResponseContentType: "application/json"
     }
 
@@ -345,9 +361,10 @@ function addPlayer(playerName, room) {
     .then((data) => {
         data.players.push(playerName);
         data.numPlayers = data.players.length;
+
         updateStateFile(room, data);
     })
-    .catch((err) => console.error(err));
+    .catch((err) => console.error(`Error in getting state file from add player.\n${err}`));
 }
 
 module.exports = router;

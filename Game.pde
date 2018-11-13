@@ -43,23 +43,27 @@ class Game {
         switch (key) {
             case 'i':    
             case 'I':
-                JSONArray players;
+                JSONArray players = new JSONArray();
+                JSONObject postData = new JSONObject();
 
-                int numAngels = allPlayers.size() * ROLE_RATIO;
+                int numAngels = (int) (allPlayers.size() * ROLE_RATIO);
                 ArrayList<Player> roleless = new ArrayList<Player>();
                 roleless.addAll(allPlayers);
 
                 for (int i = 0; i < numAngels; i++) {
-                    int randomPlayer = random(roleless.size());
+                    int randomPlayer = (int) random(roleless.size());
                     roleless.get(randomPlayer).setRole(Roles.ANGEL);
                     roleless.remove(randomPlayer);
                 }
 
-                for (Player mortal : roleless) mortal.setRole(Roles.Human);
+                for (Player mortal : roleless) mortal.setRole(Roles.HUMAN);
 
                 int i = 0;
                 for (Player player : allPlayers) players.setJSONObject(i++, player.toJSON());
-                
+                postData.setJSONArray("player_data", players);
+                //TODO
+                //Need to post the state for all of the players to DigitalOcean
+                hostGame.postData("admin/players", postData);
                 break;
             case 'o':    
             case 'O':
@@ -76,6 +80,7 @@ class Game {
             case 'p':    
             case 'P':
                 playerNames = hostGame.sendRequest("admin/players");
+                for (String player : playerNames) allPlayers.add(new Player(player));
                 break;
             default:
                 break;

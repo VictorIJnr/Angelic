@@ -20,7 +20,9 @@ class Vote {
     Verdict decision;
 
     Vote(Player voter, Player against, Verdict decision) {
-
+        this.voter = voter;
+        this.against = against;
+        this.decision = decision;
     }
 
     void change(Player against, Verdict decision) {
@@ -33,5 +35,6 @@ class Vote {
         retJSON.setString("voter", voter.getName());
         retJSON.setString("against", against.getName());
         retJSON.setString("decision", decision.name());
+        return retJSON;
     }
 }

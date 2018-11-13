@@ -3,7 +3,7 @@ enum Roles {
 }
 
 class Player {
-    Role myRole;
+    Roles myRole;
     String myName;
     ArrayList<Votes> myVotes;
 
