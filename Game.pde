@@ -1,3 +1,4 @@
+//NAMING and LOBBY are exclusive to the client-side aspect of the game
 //LOBBY indicates waiting for more players to join the game
 enum GameState {
     MENU, HOSTING, NAMING, LOBBY, ROLES, PLAYING, RESULTS;
@@ -41,6 +42,16 @@ class Game {
 
     void keyPress() {
         switch (key) {
+            case CODED:
+                switch(keyCode) {
+                    case ENTER:  
+                    case RETURN:
+                        updateGameState()
+                        break;
+                    default:
+                        break;
+                }
+                break;
             case 'i':    
             case 'I':
                 JSONArray players = new JSONArray();
@@ -98,8 +109,10 @@ class Game {
     /*
         Updates the current state of game.
     */
-    void updateGameState() {
-        
+    void updateGameState(GameState newState) {
+        JSONObject reqBody = new JSONObject();
+        reqBody.setString("state", newState.name());
+        hostGame.postData("admin/state", reqBody);
     }
     
     /*

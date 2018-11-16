@@ -21,6 +21,19 @@ let s3 = new AWS.S3({
     secretAccessKey: myDigiSecret
 });
 
+/**
+ * Client-side endpoint to allow them to connect to a room
+ * */
+router.get("/:room", function(req, res) {
+    res.render("index");
+});
+
+router.get("/:room/state", function(req, res) {
+    getStateFile(req.params.room)
+    .then((data) => res.send(data))
+    .catch((err) => res.send("An error occurred querying room state."));
+});
+
 router.get("/:room/admin", function(req, res) {
     console.log(`Setting up room ${req.params.room}`);
 
@@ -105,9 +118,10 @@ router.get("/:room/admin/start", function(req, res) {
     .catch((err) => res.send(err));
 });
 
-router.get("/:room", function(req, res) {
-    res.render("index");
+router.post("/:room/admin/state", function(req, res) {
+    updateStateFile(req.params.room, res.body.state);
 });
+
 
 /**
  * Endpoint for connecting a player to the game room.
@@ -214,7 +228,7 @@ router.post("/:room/player", function(req, res) {
 router.get("/:room/player/state", function(req, res) {
     getFile(req.params.room, req.cookies.playerName)
     .then((data) => res.send(data))
-    .catch((err) => res.send(err));
+    .catch((err) => res.send("An error occured when pinging player state."));
 });
 
 /**

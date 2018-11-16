@@ -14,3 +14,7 @@ function draw() {
     rectMode(CORNER);
     myGame.update();
 }
+
+function mouseClicked() {
+    myGame.mouseClick();
+}
