@@ -46,3 +46,7 @@ void keyPressed() {
 void keyReleased() {
     myGame.keyRelease();
 }
+
+void mouseClicked() {
+    myGame.mouseClick();
+}

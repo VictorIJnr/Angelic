@@ -41,13 +41,21 @@ class Game {
                     break;
             }
         }
+
+        this.pingState();
     }
 
     pingState() {
         //Only update/look for a new state if the game's state has already
         //been initialised.
         if (this.gameData) {
-            httpGet();
+            httpGet(`${this.endpoint}/player`, "json", (data) => {
+                this.gameData = data;
+                console.log(data);
+                //PRXIT's a pretty cool room name
+                //DYGYD is a thingy, I can't remember the name...
+                //KEXIA is a much cooler name though like damn...
+            }, (err) => console.log(err));
         }
     }
 

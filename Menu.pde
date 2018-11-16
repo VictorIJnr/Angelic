@@ -1,7 +1,8 @@
 class Menu {
 
-    void draw() {
-        RadioButton<String> myRadio;
+    RadioButton<String> myRadio;
+
+    Menu() {
         ArrayList<String> myVals = new ArrayList<String>();
 
         myVals.add("foo");
@@ -9,9 +10,15 @@ class Menu {
         myVals.add("loosid");
 
         myRadio = new RadioButton<String>(myVals, new PVector(width / 2, height / 2));
+    }
+
+    void draw() {
         myRadio.draw();
     }
 
+    void mouseClick() {
+        myRadio.mouseClicked();
+    }
 }
 
 class Button<T> {
@@ -44,7 +51,7 @@ class Button<T> {
             && mouseY >= myPosition.y - BTN_HEIGHT / 2&& mouseY <= myPosition.y + BTN_HEIGHT / 2;
     }
 
-    boolean mouseClicked() {return false;}
+    void mouseClicked() {}
     void subClicked(int subID) {}
 
     T getValue() {
@@ -54,10 +61,12 @@ class Button<T> {
 
 class RadioButton<T> extends Button<T> {
     ArrayList<BoolButton<T>> subButtons;
+    int subIndex = 0;
 
     RadioButton(ArrayList<T> values, PVector myPos) {
         super(values, myPos);
         subButtons = setupSubButtons(values);
+        subButtons.get(subIndex).flip();
     }
 
     ArrayList<BoolButton<T>> setupSubButtons(ArrayList<T> values) {
@@ -69,20 +78,34 @@ class RadioButton<T> extends Button<T> {
                 myPosition.y + (index++ * BTN_HEIGHT + BTN_HEIGHT / 2))));
         }
 
-            float yMod = index * BTN_HEIGHT + BTN_HEIGHT / 2;
         return retValue;
     }
 
     @Override
-    void subClicked(int subID) {
-        myValue = subButtons.get(subID).getValue();
-        System.out.println("Called");
+    void mouseClicked() {
+        int i = 0;
+
+        for (BoolButton<T> subButton : subButtons) {
+            if (subButton.clicked()) {
+                subButtons.get(subIndex).flip();
+                myValue = subButton.getNonNullValue();
+                subButton.flip();
+                subIndex = i;
+
+                System.out.println(myValue);
+        System.out.println("My Value " + this);
+
+                break;
+            }
+            i++;
+        }
     }
 
     void update() {
        for (BoolButton<T> option : subButtons) {
             color fillColour;
-            if (option.getValue() == myValue) fillColour = SELECTED_FILL;
+            System.out.println(subIndex);
+            if (option.getID() == subIndex) fillColour = SELECTED_FILL;
             else fillColour = DEFAULT_FILL;
 
             option.draw(fillColour, DEFAULT_TEXT_FILL);
@@ -92,7 +115,8 @@ class RadioButton<T> extends Button<T> {
     void draw() {
         for (BoolButton<T> option : subButtons) {
             color fillColour;
-            if (option.getValue() == myValue) fillColour = SELECTED_FILL;
+
+            if (option.getID() == subIndex) fillColour = SELECTED_FILL;
             else fillColour = DEFAULT_FILL;
 
             option.draw(fillColour, DEFAULT_TEXT_FILL);
@@ -103,6 +127,7 @@ class RadioButton<T> extends Button<T> {
 class BoolButton<T> extends Button<T> {
     ArrayList<T> myVals = new ArrayList<T>();
     Button<T> parent;
+    T nonNull;
     int myID;
 
     BoolButton(Button<T> parent, int id, T value, PVector myPos) {
@@ -113,14 +138,27 @@ class BoolButton<T> extends Button<T> {
 
     BoolButton(T value, PVector myPos) {
         super(value, myPos);
-        myValue = value;
+        nonNull = value;
+        myValue = null;
 
         myVals.add(value);
         myVals.add(null);
     }
 
+    void flip() {
+        myValue = (myValue == null) ? myVals.get(0) : null;
+    }
+
+    T getNonNullValue() {
+        return nonNull;
+    }
+
     boolean getBoolValue() {
         return myValue != null;
+    }
+
+    int getID() {
+        return myID;
     }
 
     void draw() {
@@ -135,15 +173,14 @@ class BoolButton<T> extends Button<T> {
         rect(myPosition.x, myPosition.y, BTN_WIDTH, BTN_HEIGHT);
 
         fill(textFill);
-        text(myValue.toString(), myPosition.x, myPosition.y + TEXT_SIZE / 4, BTN_WIDTH, BTN_HEIGHT);
+        text(nonNull.toString(), myPosition.x, myPosition.y + TEXT_SIZE / 4, BTN_WIDTH, BTN_HEIGHT);
     }
 
-    boolean mouseClicked() {
-        if (mousePressed && mouseHover()) {
+    boolean clicked() {
+        if (mouseHover()) {
             myValue = (myValue == null) ? myVals.get(0) : null;
-            return true; 
+            return true;
         }
-
         return false;
     }
 }

@@ -91,6 +91,10 @@ class Game {
 
     }
 
+    void mouseClick() {
+        myMenu.mouseClick();
+    }
+
     /*
         Updates the current state of game.
     */

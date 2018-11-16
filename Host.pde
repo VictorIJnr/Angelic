@@ -56,6 +56,7 @@ class Host {
                 System.out.println("What, no errors?");
 
                 BufferedReader in = new BufferedReader(new InputStreamReader(myConn.getInputStream()));
+                System.out.println("Okay, please give me an error...");
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) 
                     System.out.println(inputLine);
