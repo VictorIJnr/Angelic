@@ -96,8 +96,6 @@ class RadioButton<T> extends Button<T> {
                 subIndex = i;
 
                 System.out.println(myValue);
-        System.out.println("My Value " + this);
-
                 break;
             }
             i++;

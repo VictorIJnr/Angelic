@@ -2,6 +2,7 @@ let myGame;
 
 function setup() {
     fill(0);
+    textSize(24);
     createCanvas(screen.width / 2, screen.height / 2);
     textAlign(CENTER);
 

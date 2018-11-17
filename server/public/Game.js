@@ -1,7 +1,6 @@
 class Game {
     constructor() {
         this.gameData;
-        this.pingable = true;
         this.userInput = createInput();
         this.player = new Player();
         this.room = window.location.pathname.substring(1);
@@ -9,6 +8,9 @@ class Game {
 
         httpGet(`${this.endpoint}/player`, "json", (data) => {
             this.gameData = data;
+
+            if (this.gameData["err-msg"]) this.gameData.state = "ERROR";
+
             console.log(data);
             //PRXIT's a pretty cool room name
             //DYGYD is a thingy, I can't remember the name...
@@ -19,27 +21,24 @@ class Game {
 
     update() {
         if (this.gameData) {
+            if (this.gameData.state == "HOSTING") 
+                this.gameData.state = (this.player.getName()) ? "LOBBY" : "NAMING";
             switch (this.gameData.state) {
+                case "ERROR":
+                    this.errorState();
+                    break;
                 case "NAMING":
                     this.enteredName();
+                    this.drawText(`Enter your desired name in the text box below.`)
                     break;
-                case "HOSTING":
                 case "LOBBY":
                     this.enteredName();
-                    rectMode(CENTER);
-                    fill(51);
-                    text(`Your name is ${this.gameData.myName}\n`
+                    this.drawText(`Your name is ${this.gameData.myName}\n`
                         + `Wait until for other players to join the game or until the host `
-                        + `decides to start the game...`,
-                        width / 2, height / 2, width * 0.75, height / 2);
+                        + `decides to start the game...`);
                     break;
                 case "ROLES":
-                    rectMode(CENTER);
-                    fill(51);
-
-                    text(`You've been assigned to play as ${this.player.displayRole()}\n`,
-                        width / 2, height / 2, width * 0.75, height / 2); 
-                    console.log("Role Distribution.");
+                    this.drawText(`You've been assigned to play as ${this.player.displayRole()}\n`);
                     break;
                 case "PLAYING":
                     console.log("Playing the game.");
@@ -49,6 +48,13 @@ class Game {
                     break;
             }
         }
+
+        this.pingState();
+        this.pingPlayerState();
+    }
+
+    errorState() {
+        this.drawText(this.gameData["err-msg"]);
     }
 
     pingState() {
@@ -84,6 +90,12 @@ class Game {
                 this.gameData.state = response.state;
             });
         });
+    }
+
+    drawText(text) {
+        rectMode(CENTER);
+        fill(51);
+        text(text, width / 2, height / 2, width * 0.75, height / 2); 
     }
 
     mouseClick() {

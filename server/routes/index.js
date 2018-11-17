@@ -60,8 +60,6 @@ router.get("/:room/admin/players", function(req, res) {
         Prefix: `${req.params.room}/`
     };
 
-    console.log("\nAdmin requested all the players.");
-
     s3.listObjectsV2(digiParams, (err, data) => {
         if (err) {
             console.error(err); 
@@ -118,8 +116,12 @@ router.get("/:room/admin/start", function(req, res) {
     .catch((err) => res.send(err));
 });
 
+/** 
+ * Endpoint to allow for state updates
+*/
 router.post("/:room/admin/state", function(req, res) {
-    updateStateFile(req.params.room, res.body.state);
+    console.log(`Updating game state to ${req.body.state}`);
+    updateStateFile(req.params.room, req.body);
 });
 
 

@@ -29,7 +29,8 @@ class Game {
     }
 
     void draw() {
-        // myChat.draw();
+        myGame.update();
+
         myMenu.draw();
         hostGame.ping();
 
@@ -42,21 +43,23 @@ class Game {
 
     void keyPress() {
         switch (key) {
-            case CODED:
+            case CODED: //Doesn't seem to work?
+            default:
                 switch(keyCode) {
                     case ENTER:  
                     case RETURN:
+                        System.out.println("Enter clicked");
                         updateGameState(GameState.ROLES);
+                        allocateRoles();
+                        break;
+                    case TAB:
+                        System.out.println("Tab clicked");
+                        updateGameState(GameState.ROLES);
+                        allocateRoles();
                         break;
                     default:
                         break;
                 }
-                break;
-            case 'i':    
-            case 'I':
-                
-                break;
-            default:
                 break;
         }
     }
@@ -133,7 +136,7 @@ class Game {
         newPlayers.removeAll(playerNames);
 
         for (String player : newPlayers) 
-            if (!allPlayers) allPlayers.add(new Player(player));
+            if (!playerNames.contains(player)) allPlayers.add(new Player(player));
         
         playerNames.addAll(newPlayers);
     }
