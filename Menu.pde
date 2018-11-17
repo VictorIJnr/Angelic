@@ -3,6 +3,9 @@ class Menu {
     RadioButton<String> myRadio;
 
     Menu() {
+        //TODO
+        //Make a button to start the game
+        //Make a button to distribute roles
         ArrayList<String> myVals = new ArrayList<String>();
 
         myVals.add("foo");

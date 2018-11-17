@@ -13,6 +13,7 @@ class Game {
             //PRXIT's a pretty cool room name
             //DYGYD is a thingy, I can't remember the name...
             //KEXIA is a much cooler name though like damn...
+            //RUSKI isn't bad, but I doubt anything'll beat Kexia
         }, (err) => console.log(err));
     }
 
@@ -22,6 +23,7 @@ class Game {
                 case "NAMING":
                     this.enteredName();
                     break;
+                case "HOSTING":
                 case "LOBBY":
                     this.enteredName();
                     rectMode(CENTER);
@@ -34,9 +36,8 @@ class Game {
                 case "ROLES":
                     rectMode(CENTER);
                     fill(51);
-                    text(`Your name is ${this.gameData.myName}\n`
-                        + `Wait until for other players to join the game or until the host `
-                        + `decides to start the game...`,
+
+                    text(`You've been assigned to play as ${this.player.displayRole()}\n`,
                         width / 2, height / 2, width * 0.75, height / 2); 
                     console.log("Role Distribution.");
                     break;
@@ -52,7 +53,8 @@ class Game {
 
     pingState() {
         httpGet(`${this.endpoint}/state`, "json", (data) => {
-            this.gameState = data;
+            this.gameData = data;
+            console.log(data);
         });
     }
 
@@ -62,6 +64,7 @@ class Game {
         if (this.gameData) {
             httpGet(`${this.endpoint}/player/state`, "json", (data) => {
                 console.log(data);
+                this.player.setRole(data.role);
             }, (err) => console.log(err));
         }
     }
@@ -71,6 +74,7 @@ class Game {
             // this.player.setName(this.userInput.value());
             //The following line should be temporary
             this.gameData.myName = this.userInput.value();
+            this.player.setName(this.userInput.value());
             let postData = {
                 myName: this.userInput.value()
             }

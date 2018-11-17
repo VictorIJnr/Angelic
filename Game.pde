@@ -25,7 +25,7 @@ class Game {
     }
 
     void update() {
-
+        pingPlayers();
     }
 
     void draw() {
@@ -46,7 +46,7 @@ class Game {
                 switch(keyCode) {
                     case ENTER:  
                     case RETURN:
-                        updateGameState()
+                        updateGameState(GameState.ROLES);
                         break;
                     default:
                         break;
@@ -54,44 +54,7 @@ class Game {
                 break;
             case 'i':    
             case 'I':
-                JSONArray players = new JSONArray();
-                JSONObject postData = new JSONObject();
-
-                int numAngels = (int) (allPlayers.size() * ROLE_RATIO);
-                ArrayList<Player> roleless = new ArrayList<Player>();
-                roleless.addAll(allPlayers);
-
-                for (int i = 0; i < numAngels; i++) {
-                    int randomPlayer = (int) random(roleless.size());
-                    roleless.get(randomPlayer).setRole(Roles.ANGEL);
-                    roleless.remove(randomPlayer);
-                }
-
-                for (Player mortal : roleless) mortal.setRole(Roles.HUMAN);
-
-                int i = 0;
-                for (Player player : allPlayers) players.setJSONObject(i++, player.toJSON());
-                postData.setJSONArray("player_data", players);
-                //TODO
-                //Need to post the state for all of the players to DigitalOcean
-                hostGame.postData("admin/players", postData);
-                break;
-            case 'o':    
-            case 'O':
-                myState = GameState.ROLES;
-                ArrayList<String> startMsg = new ArrayList<String>();
-                startMsg = hostGame.sendRequest("admin/start");
-
-                System.out.println("");
-                for (String line : startMsg) {
-                    fill(51);
-                    System.out.println(line);
-                }
-                break;
-            case 'p':    
-            case 'P':
-                playerNames = hostGame.sendRequest("admin/players");
-                for (String player : playerNames) allPlayers.add(new Player(player));
+                
                 break;
             default:
                 break;
@@ -123,4 +86,55 @@ class Game {
         
     }
 
+    /*
+        Closes the lobby from any further join requests from players.
+        Subsequently allocates roles to each of the connected players.
+    */
+    void startGame() {
+        myState = GameState.ROLES;
+        hostGame.sendRequest("admin/start");
+    }
+
+    /*
+        Assigns roles to all of the connected players.
+    */
+    void allocateRoles() {
+        JSONArray players = new JSONArray();
+        JSONObject postData = new JSONObject();
+
+        int numAngels = (int) (allPlayers.size() * ROLE_RATIO);
+        ArrayList<Player> roleless = new ArrayList<Player>();
+        roleless.addAll(allPlayers);
+
+        //Assigning all the angels
+        for (int i = 0; i < numAngels; i++) {
+            int randomPlayer = (int) random(roleless.size());
+            roleless.get(randomPlayer).setRole(Roles.ANGEL);
+            roleless.remove(randomPlayer);
+        }
+
+        //Leaving each available player as a human
+        for (Player mortal : roleless) mortal.setRole(Roles.HUMAN);
+
+        //Formatting the Player objects into an equivalent JSON array of players
+        //which is to be sent to the server
+        int i = 0;
+        for (Player player : allPlayers) players.setJSONObject(i++, player.toJSON());
+        postData.setJSONArray("player_data", players);
+        hostGame.postData("admin/players", postData);
+    }
+
+    /*
+        Pings the server to retrieve all the currently connected players.
+    */
+    void pingPlayers() {
+        ArrayList<String> newPlayers = new ArrayList<String>();
+        newPlayers = hostGame.sendRequest("admin/players");
+        newPlayers.removeAll(playerNames);
+
+        for (String player : newPlayers) 
+            if (!allPlayers) allPlayers.add(new Player(player));
+        
+        playerNames.addAll(newPlayers);
+    }
 }
