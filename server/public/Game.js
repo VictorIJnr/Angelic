@@ -23,6 +23,7 @@ class Game {
         if (this.gameData) {
             if (this.gameData.state == "HOSTING") 
                 this.gameData.state = (this.player.getName()) ? "LOBBY" : "NAMING";
+
             switch (this.gameData.state) {
                 case "ERROR":
                     this.errorState();
@@ -59,8 +60,9 @@ class Game {
 
     pingState() {
         httpGet(`${this.endpoint}/state`, "json", (data) => {
-            this.gameData = data;
-            console.log(data);
+            if (data.state != "HOSTING") {
+                this.gameData = data;
+            }
         });
     }
 
@@ -69,9 +71,8 @@ class Game {
         //been initialised.
         if (this.gameData) {
             httpGet(`${this.endpoint}/player/state`, "json", (data) => {
-                console.log(data);
-                this.player.setRole(data.role);
-            }, (err) => console.log(err));
+                if (typeof data.role != "undefined") this.player.setRole(data.role);
+            });
         }
     }
 
@@ -92,10 +93,10 @@ class Game {
         });
     }
 
-    drawText(text) {
+    drawText(displayText) {
         rectMode(CENTER);
         fill(51);
-        text(text, width / 2, height / 2, width * 0.75, height / 2); 
+        text(displayText, width / 2, height / 2, width * 0.75, height / 2); 
     }
 
     mouseClick() {

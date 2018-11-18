@@ -1,26 +1,37 @@
-class Menu {
+enum Action {
+    START_GAME, SET_ROLES;
+}
 
-    RadioButton<String> myRadio;
+class Menu {
+    RadioButton<Action> myActions;
+
+    ActionButton startGame;
+    ActionButton setRoles;
 
     Menu() {
         //TODO
         //Make a button to start the game
         //Make a button to distribute roles
-        ArrayList<String> myVals = new ArrayList<String>();
+        ArrayList<Action> actions = new ArrayList<Action>();
 
-        myVals.add("foo");
-        myVals.add("bar");
-        myVals.add("loosid");
+        startGame = new ActionButton(Action.START_GAME, new PVector(width / 2, height / 2));
+        setRoles = new ActionButton(Action.SET_ROLES, new PVector(width / 2, height * 0.75));
 
-        myRadio = new RadioButton<String>(myVals, new PVector(width / 2, height / 2));
+        actions.add(Action.START_GAME);
+        actions.add(Action.SET_ROLES);
+
+        // myRadio = new RadioButton<String>(myVals, new PVector(width / 2, height / 2));
+        myActions = new RadioButton<Action>(actions, new PVector(width / 2, height / 2));
     }
 
     void draw() {
-        myRadio.draw();
+        startGame.draw();
+        setRoles.draw();
     }
 
     void mouseClick() {
-        myRadio.mouseClicked();
+        startGame.mouseClicked();
+        setRoles.mouseClicked();
     }
 }
 
@@ -47,6 +58,25 @@ class Button<T> {
         myPosition = myPos;
 
         myValue = values.get(0);
+    }
+
+    void draw() {
+        draw(DEFAULT_FILL, DEFAULT_TEXT_FILL);
+    }
+
+    void draw(color rectFill, color textFill) {
+        draw(myValue.toString(), rectFill, textFill);
+    }
+
+    void draw(String displayText, color rectFill, color textFill) {
+        if (mouseHover()) rectFill = HOVER_FILL;
+        
+        fill(rectFill);
+        rectMode(CENTER);
+        rect(myPosition.x, myPosition.y, BTN_WIDTH, BTN_HEIGHT);
+
+        fill(textFill);
+        text(displayText, myPosition.x, myPosition.y + TEXT_SIZE / 4, BTN_WIDTH, BTN_HEIGHT);    
     }
 
     boolean mouseHover() {
@@ -183,5 +213,34 @@ class BoolButton<T> extends Button<T> {
             return true;
         }
         return false;
+    }
+}
+
+class ActionButton extends Button<Action> {
+    Action myAction;
+
+    ActionButton(Action myAction, PVector myPos) {
+        super(myAction, myPos);
+
+        this.myAction = myAction;
+    }
+
+    @Override
+    void draw(color rectFill, color textFill) {
+        draw(myAction.name(), rectFill, textFill);
+    }
+
+    @Override
+    void mouseClicked() {
+        switch (myAction) {
+            case START_GAME:
+                myGame.startGame();
+                break; 
+            case SET_ROLES:
+                myGame.allocateRoles();
+                break;
+            default:
+                break;
+        }
     }
 }

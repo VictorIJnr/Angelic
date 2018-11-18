@@ -3,5 +3,6 @@
     "playState": "DAY",
     "numPlayers": 0,
     "players": [],
+    "day": 1,
     "votes": {}
 }

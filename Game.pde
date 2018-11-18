@@ -17,7 +17,7 @@ class Game {
     Menu myMenu = new Menu();
     Chat myChat = new Chat();
     Host hostGame = new Host();
-    ArrayList<Player> allPlayers = new ArrayList<Player>();
+    HashMap<String, Player> allPlayers = new HashMap<String, Player>();
     ArrayList<String> playerNames = new ArrayList<String>();
 
     Game() {
@@ -107,7 +107,7 @@ class Game {
 
         int numAngels = (int) (allPlayers.size() * ROLE_RATIO);
         ArrayList<Player> roleless = new ArrayList<Player>();
-        roleless.addAll(allPlayers);
+        roleless.addAll(allPlayers.values());
 
         //Assigning all the angels
         for (int i = 0; i < numAngels; i++) {
@@ -122,7 +122,7 @@ class Game {
         //Formatting the Player objects into an equivalent JSON array of players
         //which is to be sent to the server
         int i = 0;
-        for (Player player : allPlayers) players.setJSONObject(i++, player.toJSON());
+        for (Player player : allPlayers.values()) players.setJSONObject(i++, player.toJSON());
         postData.setJSONArray("player_data", players);
         hostGame.postData("admin/players", postData);
     }
@@ -133,10 +133,18 @@ class Game {
     void pingPlayers() {
         ArrayList<String> newPlayers = new ArrayList<String>();
         newPlayers = hostGame.sendRequest("admin/players");
-        newPlayers.removeAll(playerNames);
+        
+        Iterator<String> playerIter = playerNames.iterator();
+        while(playerIter.hasNext()) {
+            String removedPlayer = playerIter.next();
+            if (!newPlayers.contains(removedPlayer)) {
+                allPlayers.remove(removedPlayer);
+                playerIter.remove(removedPlayer);
+            }
+        }
 
-        for (String player : newPlayers) 
-            if (!playerNames.contains(player)) allPlayers.add(new Player(player));
+        newPlayers.removeAll(playerNames);
+        for (String player : newPlayers) allPlayers.put(player, new Player(player));
         
         playerNames.addAll(newPlayers);
     }

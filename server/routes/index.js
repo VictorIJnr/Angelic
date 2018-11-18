@@ -37,7 +37,7 @@ router.get("/:room/state", function(req, res) {
 router.get("/:room/admin", function(req, res) {
     console.log(`Setting up room ${req.params.room}`);
 
-    fileExists(`${req.params.room}/${demoFile}`)
+    fileExists(req.params.room, demoFile)
     .then(() => {
         getStateFile(req.params.room)
         .then((data) => {
@@ -46,7 +46,7 @@ router.get("/:room/admin", function(req, res) {
     })
     .catch(() => {
         let initState = createState(demoFile);
-        uploadJSON(`${req.params.room}/${demoFile}`, initState);
+        uploadJSON(req.params.room, demoFile, initState);
         res.send(initState);
     });
 });
@@ -90,7 +90,7 @@ router.post("/:room/admin/players", function(req, res) {
         getFile(req.params.room, player.name)
         .then((data) => {
             let newPlayer = {...data, ...player};
-            uploadJSON(`${req.params.room}/${player.name}`, newPlayer);
+            uploadJSON(req.params.room, player.name, newPlayer);
             res.send("Received players.");
         })
         .catch((err) => res.send(err));
@@ -135,7 +135,7 @@ router.get("/:room/player", function(req, res) {
     //Only once host closes joining applications are roles distributed
     //eval may be my friend later along the line...
 
-    fileExists(`${req.params.room}/${demoFile}`)
+    fileExists(req.params.room, demoFile)
     .then(() => {
         //Checks the player has previously joined this room
         // if (!req.cookies.playerName && req.cookies.room == req.params.room) {
@@ -233,6 +233,25 @@ router.get("/:room/player/state", function(req, res) {
     .catch((err) => res.send("An error occured when pinging player state."));
 });
 
+router.post("/:room/vote", function(req, res) {
+    getStateFile(req.params.room)
+    .then((data) => {
+        let gameState = data;
+        fileExists(req.params.room, `Day ${gameState.day} Voting.json`)
+        .then(() => {
+            //Append a new vote
+        })
+        .catch(() => {
+            //Create the voting file and append the vote
+            let vote;
+            vote[req.body.playerName] = req.body.vote;
+    
+            uploadJSON(req.params.room, `Day ${gameState.day} Voting.json`, vote);
+        });
+    })
+    .catch();
+});
+
 /**
  * Initialises a variable to the local state file specified.
  * @param {String} stateFile 
@@ -246,10 +265,10 @@ function createState(stateFile) {
  * @param {String} fileName file to store the data
  * @param {Object} data the data to store
 */
-function uploadJSON(fileName, data) {
+function uploadJSON(room, fileName, data) {
     let digiParams = {
         Bucket: myDigiBucket,
-        Key: fileName,
+        Key: `${room}/${fileName}`,
         ACL: "public-read",
         Body: JSON.stringify(data),
         ContentType: "application/json"
@@ -309,7 +328,7 @@ function updateStateFile(room, newFields) {
         .then((data) => {
             let newState = {...data, ...newFields};
     
-            uploadJSON(`${room}/${demoFile}`, newState)
+            uploadJSON(room, demoFile, newState)
             .then(resolve).catch(reject);
         })
         .catch((err) => {
@@ -323,9 +342,10 @@ function updateStateFile(room, newFields) {
  * Checks for the existence of a file on DigitalOcean 
  * @param {String} fileName the file to check for its existence
  * */
-function fileExists(fileName) {
+function fileExists(room, fileName) {
     let params = {
-        Bucket: myDigiBucket
+        Bucket: myDigiBucket,
+        StartAfter: room 
     };
 
     let myPromise = new Promise((resolve, reject) => {
@@ -355,7 +375,7 @@ function fileExists(fileName) {
 function uniquePlayer(playerName, room) {
     //I don't need the data from the file, its presence is enough
     let newPlayer = new Promise((resolve, reject) => {
-        fileExists(`${room}/${playerName}`)
+        fileExists(room, playerName)
         .then((err) => reject(err))
         .catch(() => resolve());
     });
@@ -371,7 +391,7 @@ function uniquePlayer(playerName, room) {
 function addPlayer(playerName, room) {
     //The player file will be updated with information later
     //such as their role and who they've voted against.
-    uploadJSON(`${room}/${playerName}`, {});
+    uploadJSON(room, playerName, {});
 
     getStateFile(room)
     .then((data) => {
