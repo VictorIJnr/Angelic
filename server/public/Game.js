@@ -6,6 +6,8 @@ class Game {
         this.room = window.location.pathname.substring(1);
         this.endpoint = `http://localhost:20793/${this.room}`;
 
+        this.myDay = new Day();
+
         httpGet(`${this.endpoint}/player`, "json", (data) => {
             this.gameData = data;
 
@@ -42,7 +44,8 @@ class Game {
                     this.drawText(`You've been assigned to play as ${this.player.displayRole()}\n`);
                     break;
                 case "PLAYING":
-                    console.log("Playing the game.");
+                    this.drawText(`Look up at the screen`);
+                    this.myDay.draw();
                     break;
                 default:
                     if (typeof this.gameData.state !=  "undefined")
@@ -101,7 +104,14 @@ class Game {
     }
 
     mouseClick() {
-        this.pingState();
-        this.pingPlayerState();
+        this.myDay.mouseClick();
+    }
+
+    getGameData() {
+        return this.gameData;
+    }
+
+    getPlayer() {
+        return this.player;
     }
 }

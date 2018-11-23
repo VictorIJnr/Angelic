@@ -6,6 +6,7 @@ class Player {
     Roles myRole;
     String myName;
     ArrayList<Votes> myVotes;
+    boolean isAlive = true;
 
     Player(String myName) {
         this.myName = myName;
@@ -18,6 +19,10 @@ class Player {
 
     String getName() {
         return myName;
+    }
+
+    void fromJSON() {
+        //TODO
     }
 
     JSONObject toJSON() {

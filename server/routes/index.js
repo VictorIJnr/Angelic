@@ -51,6 +51,8 @@ router.get("/:room/admin", function(req, res) {
     });
 });
 
+router.get("/:room/admin/players/states", function);
+
 /** 
  * Endpoint to allow the host to see all of the connected players
 */
@@ -83,7 +85,7 @@ router.get("/:room/admin/players", function(req, res) {
  * Endpoint to allow for the updating of connected players.
  */
 router.post("/:room/admin/players", function(req, res) {
-    console.log("Roles received from host");
+    roomOutput(req.params.room, "Roles received from host");
     let players = req.body.player_data;
 
     players.forEach((player) => {
@@ -101,13 +103,13 @@ router.post("/:room/admin/players", function(req, res) {
  * Endpoint to allow the host to start the game for all players
  */
 router.get("/:room/admin/start", function(req, res) {
-    console.log("Start signal received from host");
+    roomOutput(req.params.room, "Start signal received from host");
 
     getStateFile(req.params.room)
     .then((data) => {
         let newState = data;
         newState.state = "ROLES";
-        newState.playState = "DAY";
+        newState.playState = "NEWS";
 
         updateStateFile(req.params.room, newState);
         console.log(newState);
@@ -120,7 +122,7 @@ router.get("/:room/admin/start", function(req, res) {
  * Endpoint to allow for state updates
 */
 router.post("/:room/admin/state", function(req, res) {
-    console.log(`Updating game state to ${req.body.state}`);
+    roomOutput(req.params.room, `Updating game state to ${req.body.state}`);
     updateStateFile(req.params.room, req.body);
 });
 
@@ -421,6 +423,10 @@ function addPlayer(playerName, room) {
         updateStateFile(room, data);
     })
     .catch((err) => console.error(`Error in getting state file from add player.\n${err}`));
+}
+
+function roomOutput(room, text) {
+    console.log(`Room ${room}:\t${text}`);
 }
 
 module.exports = router;

@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.concurrent.*;
 
 //NAMING and LOBBY are exclusive to the client-side aspect of the game
 //LOBBY indicates waiting for more players to join the game
@@ -7,17 +8,16 @@ enum GameState {
 }
 
 enum PlayState {
-    DAY, NEWS, ANGELIC, AZREAL, VOTING, LYNCHING, NIGHT
+    NEWS, ANGELIC, AZREAL, VOTING, LYNCHING, NIGHT
 }
 
 class Game {
     static final float ROLE_RATIO = 0.4;
 
     GameState myState = GameState.HOSTING;
-    PlayState myPlayState = PlayState.DAY;
+    PlayState myPlayState = PlayState.NIGHT;
 
     Menu myMenu = new Menu();
-    Chat myChat = new Chat();
     Host hostGame = new Host();
     HashMap<String, Player> allPlayers = new HashMap<String, Player>();
     ArrayList<String> playerNames = new ArrayList<String>();
@@ -27,10 +27,19 @@ class Game {
     }
 
     void update() {
+        //TODO
+        //Only ping players when setting up the game
+        //Once it's set up, no more players can join
         pingPlayers();
     }
 
     void draw() {
+        //TODO
+        //Add a textual description for each of the game states
+        //So if it's night time, the screen will tell everyone to
+        //be quiet and look at their phone until it says it's day time
+        //Angel's perform their murder at this time
+        //Hope people don't cheat
         myGame.update();
 
         myMenu.draw();
@@ -38,7 +47,7 @@ class Game {
 
         for (int i = 0; i < playerNames.size(); i++) {
             int yMod = TEXT_SIZE * 2 * i;
-            text(playerNames.get(i), width / 4, height * 0.1 + yMod);
+            text(playerNames.get(i) + " joined the lobby.", width / 4, height * 0.1 + yMod);
         } 
         
     }
@@ -78,6 +87,7 @@ class Game {
         Updates the current state of game.
     */
     void updateGameState(GameState newState) {
+        myState = newState;
         JSONObject reqBody = new JSONObject();
         reqBody.setString("state", newState.name());
         hostGame.postData("admin/state", reqBody);
@@ -87,8 +97,11 @@ class Game {
         Update the current state of play.
         Only utilised while the GameState is PLAYING.
     */
-    void updatePlayState() {
-        
+    void updatePlayState(PlayState newState) {
+        myPlayState = newState;
+        JSONObject reqBody = new JSONObject();
+        reqBody.setString("playState", newState.name());
+        hostGame.postData("admin/state", reqBody);
     }
 
     /*
@@ -96,9 +109,19 @@ class Game {
         Subsequently allocates roles to each of the connected players.
     */
     void startGame() {
-        myState = GameState.ROLES;
         hostGame.sendRequest("admin/start");
         allocateRoles();
+
+        try {
+            //Allow players to see their roles 
+            TimeUnit.SECONDS.sleep(5);
+            //Then switch the game state once everyone is familiar with their roles
+            updateGameState(GameState.PLAYING);
+            updatePlayState(PlayState.NIGHT);
+        }
+        catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
     }
 
     /*
@@ -150,5 +173,9 @@ class Game {
         for (String player : newPlayers) allPlayers.put(player, new Player(player));
         
         playerNames.addAll(newPlayers);
+    }
+
+    PlayState getPlayState() {
+        return myPlayState;
     }
 }
