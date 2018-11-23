@@ -1,37 +1,22 @@
 enum Action {
-    START_GAME, SET_ROLES;
+    START_GAME;
 }
 
 class Menu {
-    RadioButton<Action> myActions;
-
     ActionButton startGame;
-    ActionButton setRoles;
 
     Menu() {
         //TODO
         //Make a button to start the game
-        //Make a button to distribute roles
-        ArrayList<Action> actions = new ArrayList<Action>();
-
         startGame = new ActionButton(Action.START_GAME, new PVector(width / 2, height / 2));
-        setRoles = new ActionButton(Action.SET_ROLES, new PVector(width / 2, height * 0.75));
-
-        actions.add(Action.START_GAME);
-        actions.add(Action.SET_ROLES);
-
-        // myRadio = new RadioButton<String>(myVals, new PVector(width / 2, height / 2));
-        myActions = new RadioButton<Action>(actions, new PVector(width / 2, height / 2));
     }
 
     void draw() {
         startGame.draw();
-        setRoles.draw();
     }
 
     void mouseClick() {
         startGame.mouseClicked();
-        setRoles.mouseClicked();
     }
 }
 
@@ -209,6 +194,7 @@ class BoolButton<T> extends Button<T> {
 
     boolean clicked() {
         if (mouseHover()) {
+            System.out.println("IMM FSHOASFHOHSFO ");
             myValue = (myValue == null) ? myVals.get(0) : null;
             return true;
         }
@@ -232,15 +218,14 @@ class ActionButton extends Button<Action> {
 
     @Override
     void mouseClicked() {
-        switch (myAction) {
-            case START_GAME:
-                myGame.startGame();
-                break; 
-            case SET_ROLES:
-                myGame.allocateRoles();
-                break;
-            default:
-                break;
+        if (mouseHover()) {
+            switch (myAction) {
+                case START_GAME:
+                    myGame.startGame();
+                    break; 
+                default:
+                    break;
+            }
         }
     }
 }

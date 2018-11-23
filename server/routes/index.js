@@ -37,7 +37,7 @@ router.get("/:room/state", function(req, res) {
 router.get("/:room/admin", function(req, res) {
     console.log(`Setting up room ${req.params.room}`);
 
-    fileExists(req.params.room, demoFile)
+    roomExists(req.params.room)
     .then(() => {
         getStateFile(req.params.room)
         .then((data) => {
@@ -135,7 +135,7 @@ router.get("/:room/player", function(req, res) {
     //Only once host closes joining applications are roles distributed
     //eval may be my friend later along the line...
 
-    fileExists(req.params.room, demoFile)
+    roomExists(req.params.room)
     .then(() => {
         //Checks the player has previously joined this room
         // if (!req.cookies.playerName && req.cookies.room == req.params.room) {
@@ -177,7 +177,8 @@ router.post("/:room/player", function(req, res) {
                 if (index != -1) newPlayers.splice(index, 1);
                 updateStateFile(req.params.room, {players: newPlayers})
                 .then(() => {
-                    console.log(`Renamed ${req.cookies.playerName} to ${req.body.myName}.`);
+                    console.log(`Room ${req.params.room}:\tRenamed ${req.cookies.playerName} `
+                                + `to ${req.body.myName}.`);
                     addPlayer(req.body.myName, req.params.room);
 
                     //Only update the player name once they've been added
@@ -210,7 +211,7 @@ router.post("/:room/player", function(req, res) {
             //Changing the state for the player
             let newState = createState(demoSendFile);
             newState.state = "LOBBY";
-            console.log(`Moved ${req.body.myName} to the lobby.`);
+            console.log(`Room ${req.params.room}:\tMoved ${req.body.myName} to the lobby.`);
     
             //Used to associate each player with their room.
             res.cookie("room", req.params.room);
@@ -362,6 +363,25 @@ function fileExists(room, fileName) {
             }
             else reject(err);
         });
+    });
+
+    return myPromise;
+}
+
+/**
+ * Helper function to determine the existence of a room
+ *  */
+function roomExists(room) {
+    let params = {
+        Bucket: myDigiBucket,
+        Key: `${room}/${demoFile}`
+    };
+
+    let myPromise = new Promise((resolve, reject) => {
+        s3.getObject(params, (err) => {
+            if (err) reject();
+            else resolve();
+        })
     });
 
     return myPromise;

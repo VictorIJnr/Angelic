@@ -45,7 +45,8 @@ class Game {
                     console.log("Playing the game.");
                     break;
                 default:
-                    console.log(`State not handled...\n${this.gameData.state}`);
+                    if (typeof this.gameData.state !=  "undefined")
+                        console.log(`State not handled...\n${this.gameData.state}`);
                     break;
             }
         }

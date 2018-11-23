@@ -1,3 +1,5 @@
+import java.util.*;
+
 //NAMING and LOBBY are exclusive to the client-side aspect of the game
 //LOBBY indicates waiting for more players to join the game
 enum GameState {
@@ -96,6 +98,7 @@ class Game {
     void startGame() {
         myState = GameState.ROLES;
         hostGame.sendRequest("admin/start");
+        allocateRoles();
     }
 
     /*
@@ -139,7 +142,7 @@ class Game {
             String removedPlayer = playerIter.next();
             if (!newPlayers.contains(removedPlayer)) {
                 allPlayers.remove(removedPlayer);
-                playerIter.remove(removedPlayer);
+                playerIter.remove();
             }
         }
 
