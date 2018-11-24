@@ -13,7 +13,7 @@ function draw() {
     background("#f7f1e3");
 
     rectMode(CORNER);
-    myGame.update();
+    myGame.draw();
 }
 
 function mouseClicked() {

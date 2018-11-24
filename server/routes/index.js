@@ -51,7 +51,12 @@ router.get("/:room/admin", function(req, res) {
     });
 });
 
-router.get("/:room/admin/players/states", function);
+/**
+ * Endpoint to get the state of all connected players
+ */
+router.get("/:room/admin/players/states", function(req, res) {
+
+});
 
 /** 
  * Endpoint to allow the host to see all of the connected players

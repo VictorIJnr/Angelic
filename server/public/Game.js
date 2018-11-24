@@ -58,6 +58,10 @@ class Game {
         this.pingPlayerState();
     }
 
+    draw() {
+        this.update();
+    }
+
     errorState() {
         this.drawText(this.gameData["err-msg"]);
     }

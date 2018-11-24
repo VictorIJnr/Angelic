@@ -10,8 +10,8 @@ class Button {
     }
 
     isHovering() {
-        return ((mouseX >= this.xPos && mouseX <= this.xPos + this.width) && 
-            (mouseY >= this.yPos && mouseY <= this.yPos + this.height))
+        return ((mouseX >= this.xPos - this.width / 2 && mouseX <= this.xPos + this.width / 2) && 
+            (mouseY >= this.yPos - this.height / 2 && mouseY <= this.yPos + this.height / 2))
     }
 
     execAction() {
@@ -19,12 +19,25 @@ class Button {
     }
 
     draw() {
-        fill("fd79af");
-        stroke("#ffeaaf");
+        rectMode(CENTER);
+        textAlign(CENTER, CENTER);
+        let strokeColour = "#FFEAAF"; 
+
+        fill("#FD79AF");
+        stroke(strokeColour);
+        strokeWeight(7.5);
+        
+        //Show the hover fill if needed.
+        if (this.isHovering()) {
+            strokeColour = "#FFDDB1"; 
+            fill("#B04370");
+            stroke(strokeColour);
+        }
+
         rect(this.xPos, this.yPos, this.width, this.height);
 
-        rectMode(CENTER);
-        fill(51);
+        noStroke();
+        fill(strokeColour);
         text(this.text, this.xPos, this.yPos, this.width, this.height);
     }
 }

@@ -1,12 +1,12 @@
 class Day {
     constructor() {
-        this.guiltyBtn = new Button(width / 3, height * 0.875, 200, 125, () => {
+        this.guiltyBtn = new Button(width * 0.25, height * 0.875, 200, 65, "Guilty", () => {
             let gamePlayer = myGame.getPlayer();
 
             //TODO
             //Send a guilty vote to the server
         });
-        this.innoBtn = new Button(width * (2/3), height * 0.875, 200, 125, () => {
+        this.innoBtn = new Button(width * 0.75, height * 0.875, 200, 65, "Innocent", () => {
             let gamePlayer = myGame.getPlayer();
 
             //TODO
@@ -29,5 +29,7 @@ class Day {
     mouseClick() {
         if (this.guiltyBtn.isHovering())
             this.guiltyBtn.execAction();
+        else if (this.innoBtn.isHovering())
+            this.innoBtn.execAction();
     }
 }

@@ -4,7 +4,7 @@ class Day {
 
     }
 
-    NEWS, ANGELIC, AZREAL, VOTING, LYNCHING, NIGHT
+    // NEWS, ANGELIC, AZREAL, VOTING, LYNCHING, NIGHT
     void draw() {
         switch (myGame.getPlayState()) {
             case NEWS:
