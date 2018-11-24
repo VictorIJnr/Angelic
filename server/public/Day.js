@@ -2,15 +2,19 @@ class Day {
     constructor() {
         this.guiltyBtn = new Button(width * 0.25, height * 0.875, 200, 65, "Guilty", () => {
             let gamePlayer = myGame.getPlayer();
-
-            //TODO
-            //Send a guilty vote to the server
+            let myVote = {
+                playerName: gamePlayer.getName(),
+                vote: "GUILTY"
+            };
+            myGame.postRequest("vote/", myVote);
         });
         this.innoBtn = new Button(width * 0.75, height * 0.875, 200, 65, "Innocent", () => {
             let gamePlayer = myGame.getPlayer();
-
-            //TODO
-            //Send an innocent vote to the server
+            let myVote = {
+                playerName: gamePlayer.getName(),
+                vote: "INNOCENT"
+            };
+            myGame.postRequest("vote/", myVote);
         });
     }
 
@@ -27,9 +31,7 @@ class Day {
     }
 
     mouseClick() {
-        if (this.guiltyBtn.isHovering())
-            this.guiltyBtn.execAction();
-        else if (this.innoBtn.isHovering())
-            this.innoBtn.execAction();
+        if (this.guiltyBtn.isHovering()) this.guiltyBtn.execAction();
+        else if (this.innoBtn.isHovering()) this.innoBtn.execAction();
     }
 }

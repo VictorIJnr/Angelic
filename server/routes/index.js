@@ -244,14 +244,17 @@ router.get("/:room/player/state", function(req, res) {
 router.post("/:room/vote", function(req, res) {
     getStateFile(req.params.room)
     .then((data) => {
+        roomOutput(req.params.room, `${req.body.playerName} voted ${req.body.vote.toLowerCase()}`)
         let gameState = data;
         fileExists(req.params.room, `Day ${gameState.day} Voting.json`)
         .then(() => {
+            let myVote = {};
+            myVote[req.body.playerName] = req.body.vote;
             //Append a new vote
         })
         .catch(() => {
             //Create the voting file and append the vote
-            let vote;
+            let vote = {};
             vote[req.body.playerName] = req.body.vote;
     
             uploadJSON(req.params.room, `Day ${gameState.day} Voting.json`, vote);

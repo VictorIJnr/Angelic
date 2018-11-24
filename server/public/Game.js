@@ -101,6 +101,16 @@ class Game {
         });
     }
 
+    postRequest(endpoint, postData) {
+        let myPromise = new Promise((resolve, reject) => {
+            httpPost(`${this.endpoint}/${endpoint}`, "json", postData, 
+                (response) => resolve(response),
+                (err) => reject(err));
+        });
+
+        return myPromise;
+    }
+
     drawText(displayText) {
         rectMode(CENTER);
         fill(51);
