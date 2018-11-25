@@ -150,7 +150,7 @@ class Game {
         int i = 0;
         for (Player player : allPlayers.values()) players.setJSONObject(i++, player.toJSON());
         postData.setJSONArray("player_data", players);
-        hostGame.postData("players", postData);
+        hostGame.postData("admin/players", postData);
     }
 
     /*

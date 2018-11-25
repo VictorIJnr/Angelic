@@ -2,6 +2,8 @@ class Game {
     constructor() {
         this.gameData;
         this.allPlayers;
+        this.lastPing = millis();
+        this.pingDelta = 1000; //Time between pinging server state
 
         this.userInput = createInput();
         this.player = new Player();
@@ -14,8 +16,6 @@ class Game {
             this.gameData = data;
 
             if (this.gameData["err-msg"]) this.gameData.state = "ERROR";
-
-            console.log(data);
             //PRXIT's a pretty cool room name
             //DYGYD is a thingy, I can't remember the name...
             //KEXIA is a much cooler name though like damn...
@@ -50,14 +50,18 @@ class Game {
                     this.myDay.draw();
                     break;
                 default:
-                    if (typeof this.gameData.state !=  "undefined")
+                    if (typeof this.gameData.state != "undefined")
                         console.log(`State not handled...\n${this.gameData.state}`);
                     break;
             }
         }
 
-        this.pingState();
-        this.pingPlayerState();
+        if (millis() > this.lastPing + this.pingDelta) {
+            this.pingState();
+            this.pingPlayerState();
+            
+            this.lastPing = millis() + this.pingDelta;
+        }
     }
 
     draw() {
@@ -125,6 +129,10 @@ class Game {
         });
 
         return myPromise;
+    }
+
+    updatePlayers(newPlayers) {
+        this.allPlayers = newPlayers;
     }
 
     drawText(displayText) {

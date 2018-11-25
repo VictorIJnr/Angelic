@@ -34,11 +34,15 @@ class Day {
     update() {
         let gameData = myGame.getGameData();
         if (gameData.playState == "NEWS" && !this.pingedPlayers) {
-            myGame.updatePlayers();
+            this.getPlayerStates();
+            this.pingedPlayers = true;
         }
+        else if (gameData.playState == "NIGHT" && this.pingedPlayers)
+            this.pingedPlayers = false;
     }
 
     draw() {
+        this.update();
         this.guiltyBtn.draw();
         this.innoBtn.draw();
     }
@@ -49,6 +53,10 @@ class Day {
     }
 
     getPlayerStates() {
-        myGame.getRequest("players").then();
+        console.log("Retrieving player states");
+        myGame.getRequest("players/states").then((players) => {
+            myGame.updatePlayers(players);
+            console.log(players);
+        });
     }
 }

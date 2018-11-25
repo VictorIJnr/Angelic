@@ -63,10 +63,11 @@ router.post("/:room/admin/players", function(req, res) {
         .then((data) => {
             let newPlayer = {...data, ...player};
             uploadJSON(req.params.room, player.name, newPlayer);
-            res.send("Received players.");
         })
         .catch((err) => res.send(err));
     });
+
+    res.send("Received players.");
 });
 
 /**
@@ -115,6 +116,7 @@ router.get("/:room/players", function(req, res) {
 router.get("/:room/players/states", function(req, res) {
     getPlayerNames(req.params.room)
     .then((playerNames) => {
+        playerNames = playerNames.split("\n");
         let numPlayers = playerNames.length;
         let allPlayers = [];
         
@@ -125,9 +127,13 @@ router.get("/:room/players/states", function(req, res) {
             //Gets the name of a connected player, then gets their respective JSON file
             //And shoves it into the allPlayers array
             getFile(req.params.room, name).then((data) => allPlayers.push(data));
+            
 
             //Need to ensure all the players are added, given that this is async
-            if (allPlayers.length == numPlayers) res.send(allPlayers);
+            if (allPlayers.length == numPlayers) {
+                console.log("Sending back all of the connected players.");
+                res.send(allPlayers);
+            }
         });
     });
     //Getting risky ommitting the catch. I really shouldn't have any issues here though...
