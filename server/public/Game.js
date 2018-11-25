@@ -1,6 +1,8 @@
 class Game {
     constructor() {
         this.gameData;
+        this.allPlayers;
+
         this.userInput = createInput();
         this.player = new Player();
         this.room = window.location.pathname.substring(1);
@@ -99,6 +101,20 @@ class Game {
                 this.gameData.state = response.state;
             });
         });
+    }
+
+    /**
+     * @param {String} endpoint
+     * Sends a get request to the server 
+     */
+    getRequest(endpoint) {
+        let myPromise = new Promise((resolve, reject) => {
+            httpGet(`${this.endpoint}/${endpoint}`, "json", 
+                (response) => resolve(response),
+                (err) => reject(err));
+        });
+
+        return myPromise;
     }
 
     postRequest(endpoint, postData) {

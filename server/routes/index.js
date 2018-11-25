@@ -52,41 +52,6 @@ router.get("/:room/admin", function(req, res) {
 });
 
 /**
- * Endpoint to get the state of all connected players
- */
-router.get("/:room/admin/players/states", function(req, res) {
-
-});
-
-/** 
- * Endpoint to allow the host to see all of the connected players
-*/
-router.get("/:room/admin/players", function(req, res) {
-    let digiParams = {
-        Bucket: myDigiBucket,
-        Prefix: `${req.params.room}/`
-    };
-
-    s3.listObjectsV2(digiParams, (err, data) => {
-        if (err) {
-            console.error(err); 
-            res.send(err);
-        }
-        else {
-            let players = [];
-            
-            data.Contents.forEach((file) => {
-                let fileName = file.Key.substring(6);
-                if (fileName != `${demoFile}`) players.push(fileName);
-            });
-
-            //Sending each player name on a separate line
-            res.send(players.join("\n"));
-        }
-    });
-});
-
-/**
  * Endpoint to allow for the updating of connected players.
  */
 router.post("/:room/admin/players", function(req, res) {
@@ -129,8 +94,44 @@ router.get("/:room/admin/start", function(req, res) {
 router.post("/:room/admin/state", function(req, res) {
     roomOutput(req.params.room, `Updating game state to ${req.body.state}`);
     updateStateFile(req.params.room, req.body);
+
 });
 
+/** 
+ * Endpoint to retrieve a list of all the connected players
+*/
+router.get("/:room/players", function(req, res) {
+    getPlayerNames(req.params.room)
+    .then((playerNames) => res.send(playerNames))
+    .catch((err) => {
+        console.error(err); 
+        res.send(err);
+    });
+});
+
+/**
+ * Endpoint to get the state of all connected players
+ */
+router.get("/:room/players/states", function(req, res) {
+    getPlayerNames(req.params.room)
+    .then((playerNames) => {
+        let numPlayers = playerNames.length;
+        let allPlayers = [];
+        
+        playerNames.forEach(name => {
+            //This is a nice line of code :D
+            //I'll explain it though because 
+            //it's kinda daunting if you don't know JS (not trying to assume anything though)
+            //Gets the name of a connected player, then gets their respective JSON file
+            //And shoves it into the allPlayers array
+            getFile(req.params.room, name).then((data) => allPlayers.push(data));
+
+            //Need to ensure all the players are added, given that this is async
+            if (allPlayers.length == numPlayers) res.send(allPlayers);
+        });
+    });
+    //Getting risky ommitting the catch. I really shouldn't have any issues here though...
+});
 
 /**
  * Endpoint for connecting a player to the game room.
@@ -262,6 +263,38 @@ router.post("/:room/vote", function(req, res) {
     })
     .catch();
 });
+
+/**
+ * @param {String} room the room for which to retrieve filenames
+ * @returns a promise loaded with all the filenames
+ */
+function getPlayerNames(room) {
+    let digiParams = {
+        Bucket: myDigiBucket,
+        Prefix: `${room}/`
+    };
+
+    let myPromise = new Promise((resolve, reject) => {
+        s3.listObjectsV2(digiParams, (err, data) => {
+            if (err) reject(err);
+            else {
+                let players = [];
+                
+                data.Contents.forEach((file) => {
+                    //Removing the room name and following "/"
+                    let fileName = file.Key.substring(6);
+                    if (fileName != `${demoFile}` && !fileName.includes("Voting"))
+                        players.push(fileName);
+                });
+    
+                //Sending each player name on a separate line
+                resolve(players.join("\n"));
+            }
+        })
+    });
+
+    return myPromise;
+}
 
 /**
  * Initialises a variable to the local state file specified.

@@ -150,7 +150,7 @@ class Game {
         int i = 0;
         for (Player player : allPlayers.values()) players.setJSONObject(i++, player.toJSON());
         postData.setJSONArray("player_data", players);
-        hostGame.postData("admin/players", postData);
+        hostGame.postData("players", postData);
     }
 
     /*
@@ -158,7 +158,7 @@ class Game {
     */
     void pingPlayers() {
         ArrayList<String> newPlayers = new ArrayList<String>();
-        newPlayers = hostGame.sendRequest("admin/players");
+        newPlayers = hostGame.sendRequest("players");
         
         Iterator<String> playerIter = playerNames.iterator();
         while(playerIter.hasNext()) {
