@@ -8,7 +8,7 @@ enum GameState {
 }
 
 enum PlayState {
-    NEWS, ANGELIC, AZREAL, VOTING, LYNCHING, NIGHT
+    NEWS, NOMINATION, INVEST, VOTING, LYNCHING, NIGHT
 }
 
 class Game {

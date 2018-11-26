@@ -1,5 +1,5 @@
 {
     "room": 101,
-    "state": "PLAYING",
-    "playState": "VOTING"
+    "state": "HOSTING",
+    "playState": "NEWS"
 }

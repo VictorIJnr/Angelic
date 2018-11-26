@@ -9,9 +9,9 @@ class Day {
         switch (myGame.getPlayState()) {
             case NEWS:
                 break;
-            case ANGELIC:
+            case NOMINATION:
                 break;
-            case AZREAL:
+            case INVEST:
                 break;
             case VOTING:
                 break;

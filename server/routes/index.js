@@ -103,7 +103,10 @@ router.post("/:room/admin/state", function(req, res) {
 */
 router.get("/:room/players", function(req, res) {
     getPlayerNames(req.params.room)
-    .then((playerNames) => res.send(playerNames))
+    .then((playerNames) => {
+        let sendObj = (req.cookies.playerName) ? playerNames.split("\n") : playerNames;
+        res.send(sendObj);
+    })
     .catch((err) => {
         console.error(err); 
         res.send(err);
@@ -112,6 +115,7 @@ router.get("/:room/players", function(req, res) {
 
 /**
  * Endpoint to get the state of all connected players
+ * FINISH THIS OFF LATER
  */
 router.get("/:room/players/states", function(req, res) {
     getPlayerNames(req.params.room)

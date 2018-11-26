@@ -18,6 +18,10 @@ class Button {
         this.action();
     }
 
+    mouseClick() {
+        if (this.isHovering()) this.execAction();
+    }
+
     draw() {
         rectMode(CENTER);
         textAlign(CENTER, CENTER);

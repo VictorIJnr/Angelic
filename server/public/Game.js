@@ -1,7 +1,7 @@
 class Game {
     constructor() {
         this.gameData;
-        this.allPlayers;
+        this.allPlayers = {};
         this.lastPing = millis();
         this.pingDelta = 1000; //Time between pinging server state
 
@@ -46,7 +46,6 @@ class Game {
                     this.drawText(`You've been assigned to play as ${this.player.displayRole()}\n`);
                     break;
                 case "PLAYING":
-                    this.drawText(`Look up at the screen`);
                     this.myDay.draw();
                     break;
                 default:
@@ -83,7 +82,7 @@ class Game {
     pingPlayerState() {
         //Only update/look for a new state if the game's state has already
         //been initialised.
-        if (this.gameData) {
+        if (this.gameData && this.player) {
             httpGet(`${this.endpoint}/player/state`, "json", (data) => {
                 if (typeof data.role != "undefined") this.player.setRole(data.role);
             });
@@ -110,6 +109,7 @@ class Game {
     /**
      * @param {String} endpoint
      * Sends a get request to the server 
+     * Some reason the promise doesn't want to work for me...
      */
     getRequest(endpoint) {
         let myPromise = new Promise((resolve, reject) => {
@@ -151,5 +151,18 @@ class Game {
 
     getPlayer() {
         return this.player;
+    }
+
+    getAllPlayers() {
+        return this.allPlayers;
+    }
+
+    //TODO - Fix this
+    getAllAlivePlayers() {
+        return this.allPlayers;
+    }
+
+    getEndpoint() {
+        return this.endpoint;
     }
 }
