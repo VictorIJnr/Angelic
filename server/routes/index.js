@@ -114,6 +114,13 @@ router.post("/:room/admin/players/states", function(req, res) {
 });
 
 /** 
+ * Endpoint to update the angel to use as a killer
+*/
+router.post("/:room/admin/killer", function(req, res) {
+    uploadJSON(req.param.room, "Killer", req.body.killer).then(res.send(req.body.killer));
+})
+
+/** 
  * Endpoint to retrieve a list of all the connected players
 */
 router.get("/:room/players", function(req, res) {
@@ -130,30 +137,10 @@ router.get("/:room/players", function(req, res) {
 
 /**
  * Endpoint to get the state of all connected players
- * FINISH THIS OFF LATER
- */
+*/
 router.get("/:room/players/states", function(req, res) {
-    getPlayerNames(req.params.room)
-    .then((playerNames) => {
-        playerNames = playerNames.split("\n");
-        let numPlayers = playerNames.length;
-        let allPlayers = [];
-        
-        playerNames.forEach(name => {
-            //This is a nice line of code :D
-            //I'll explain it though because 
-            //it's kinda daunting if you don't know JS (not trying to assume anything though)
-            //Gets the name of a connected player, then gets their respective JSON file
-            //And shoves it into the allPlayers array
-            getFile(req.params.room, name).then((data) => allPlayers.push(data));
-            
-            //Need to ensure all the players are added, given that this is async
-            if (allPlayers.length == numPlayers) {
-                console.log("Sending back all of the connected players.");
-                res.send(allPlayers);
-            }
-        });
-    });
+    getFile(req.params.room, "All Players")
+    .then((data) => res.send(data));
     //Getting risky ommitting the catch. I really shouldn't have any issues here though...
 });
 
@@ -194,7 +181,7 @@ router.get("/:room/player", function(req, res) {
 
 /**
  * Endpoint to allow users to choose/change their name
- */
+*/
 router.post("/:room/player", function(req, res) {
     //If the user is changing their name
     if (req.cookies.playerName && req.cookies.room == req.params.room) {
@@ -259,7 +246,7 @@ router.post("/:room/player", function(req, res) {
 /**
  * Endpoint for players to query their current state.
  * As maintained in DigitalOcean
- */
+*/
 router.get("/:room/player/state", function(req, res) {
     getFile(req.params.room, req.cookies.playerName)
     .then((data) => res.send(data))

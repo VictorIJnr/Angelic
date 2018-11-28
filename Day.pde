@@ -22,7 +22,7 @@ class Day {
             case NIGHT:
                 break;
         }
-                voteButton.draw();
+        voteButton.draw();
     }
 
     /*
@@ -32,6 +32,25 @@ class Day {
     void stopVoting() {
         ArrayList<String> response = myGame.sendRequest("admin/votes");
         myGame.updatePlayState(PlayState.LYNCHING);
+    }
+
+    /*
+    * Selects an Angel at random to be the Angel who decides on which 
+    * player to kill that night
+    */
+    void selectKiller() {
+        ArrayList<String> playerJSONs = myGame.sendRequest("players/states");
+        ArrayList<Player> allAngels;
+
+        for (String json : playerJSONs) {
+            Player foo = new Player();
+            if (foo.isAngel())
+                allAngels.add(foo.fromJSON(json));
+        }
+
+        //This is the only line where the selection is done, the rest just filter the players
+        Player killer = allAngels.get((int) random(allAngels.size));
+        myGame.postData("admin/killer", killer.toJSON());
     }
 
     void mouseClick() {

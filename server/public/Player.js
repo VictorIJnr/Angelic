@@ -2,6 +2,7 @@ class Player {
     constructor() {
         this.name;
         this.role;
+        this.isAlive = true;
         this.votes = []; //array of votes with each index specifying a game day.
     }
     

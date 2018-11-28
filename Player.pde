@@ -20,13 +20,34 @@ class Player {
         myRole = role;
     }
 
+    void setLiving(boolean isAlive) {
+        this.isAlive = isAlive;
+    }
+
     String getName() {
         return myName;
     }
 
-    void fromJSON() {
-        //TODO
-        //Do I actually need this?
+    boolean isAngel() {
+        return myRole == Roles.ANGEL;
+    }
+
+    /*
+    * Builds a player object from their equivalent JSON
+    * Omitting the votes as they may not be required
+    */
+    Player fromJSON(JSONObject source) {
+        Player retPlayer = new Player(source.getString("name"));
+
+        retPlayer.setRole((source.getString("role").equals("ANGEL")) 
+            ? Roles.ANGEL : Roles.HUMAN);
+        retPlayer.setLiving(source.getBoolean("isAlive"));
+
+        return retPlayer;
+    }
+
+    Player fromJSON(String source) {
+        return fromJSON(parseJSONObjec(source));
     }
 
     JSONObject toJSON() {
@@ -38,10 +59,15 @@ class Player {
             retVotes.setJSONArray(i++, votes.toJSON());
 
         retObj.setString("name", myName);
-        retObj.setString("role", myRole.name());
+        retObj.setBoolean("isAlive", isAlive);
         retObj.setJSONArray("votes", retVotes);
+        retObj.setString("role", myRole.name());
 
         return retObj;
+    }
+
+    void kill() {
+        isAlive = false;
     }
 
     /*

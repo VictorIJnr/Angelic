@@ -12,7 +12,8 @@ enum PlayState {
 }
 
 class Game {
-    static final float ROLE_RATIO = 0.4;
+    static final float ROLE_RATIO = 0.5; //Only for debugging
+    // static final float ROLE_RATIO = 0.4;
 
     int timer;
     int pingTimer;
@@ -96,6 +97,9 @@ class Game {
         }
     }
 
+    /*
+        Draws the specified text in the center of the screen.
+    */
     void drawText(String displayText) {
         rectMode(CENTER);
         fill(51);
@@ -104,7 +108,7 @@ class Game {
     }
 
     /*
-    *   Writes the names of all the players who have joined the lobby
+        Writes the names of all the players who have joined the lobby
     */
     void drawPlayers() {
         if (myState == GameState.HOSTING) {
@@ -178,6 +182,7 @@ class Game {
 
         hostGame.postData("admin/players/states", new Player().listify(allPlayers));
         updateGameState(GameState.ROLES);
+
         timer = millis();
     }
 
@@ -239,6 +244,13 @@ class Game {
     */
     ArrayList<String> sendRequest(String endpoint) {
         return hostGame.sendRequest(endpoint);
+    }
+
+    /*
+        Same idea as the sendRequest function, except for POST requests.
+    */
+    ArrayList<String> postData(String endpoint, JSONObject data) {
+        return hostGame.postData(endpoint, data);
     }
 
     PlayState getPlayState() {
