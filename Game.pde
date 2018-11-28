@@ -87,7 +87,6 @@ class Game {
         } 
         
         ping();
-        System.out.println("Current millis: " + millis());
     }
 
     void drawText(String displayText) {
@@ -135,7 +134,6 @@ class Game {
         JSONObject reqBody = new JSONObject();
         reqBody.setString("state", newState.name());
 
-        System.out.println("Built JSON " + millis());
         hostGame.postData("admin/state", reqBody);
     }
     
