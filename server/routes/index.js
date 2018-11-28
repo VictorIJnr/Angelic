@@ -96,6 +96,8 @@ router.post("/:room/admin/state", function(req, res) {
     roomOutput(req.params.room, `Updating game state to ${req.body.state}`);
     updateStateFile(req.params.room, req.body);
 
+    //Just to make sure the Java doesn't hang waiting for a response
+    res.send("Done.");
 });
 
 /** 

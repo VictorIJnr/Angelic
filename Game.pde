@@ -14,6 +14,9 @@ enum PlayState {
 class Game {
     static final float ROLE_RATIO = 0.4;
 
+    int timer;
+    int pingTimer;
+
     GameState myState = GameState.HOSTING;
     PlayState myPlayState = PlayState.NIGHT;
 
@@ -23,14 +26,23 @@ class Game {
     ArrayList<String> playerNames = new ArrayList<String>();
 
     Game() {
-        // hostGame.startServer();
+        pingTimer = millis();
     }
 
     void update() {
+    }
+    
+    void ping() {
         //TODO
         //Only ping players when setting up the game
         //Once it's set up, no more players can join
-        pingPlayers();
+
+        //Ensuring the server is pinged approximately once a second
+        if (millis() - pingTimer > 1000) {
+            pingPlayers();
+            hostGame.ping();
+            pingTimer = millis();
+        }
     }
 
     void draw() {
@@ -50,7 +62,16 @@ class Game {
                 hostGame.draw();
                 break;
             case ROLES:
+                //Allow players to see their roles 
+                //Stay here for x seconds. Long enough for everyone to see their roles.
+                //Then switch the game state once everyone is familiar with their roles
                 drawText("Your roles have been assigned, you can find them on your device.");
+               
+               //Waiting for 8 seconds to pass
+                if (timer < millis() - 8000) {
+                    updateGameState(GameState.PLAYING);
+                    updatePlayState(PlayState.NIGHT);
+                }
                 break;
             case PLAYING:
                 myDay.draw();
@@ -59,14 +80,14 @@ class Game {
                 break;
         }
 
-        hostGame.ping();
-
         for (int i = 0; i < playerNames.size(); i++) {
             int nameSize = TEXT_SIZE / 3;
             int yMod = nameSize * 2 * i;
             text(playerNames.get(i) + " joined the lobby.", width / 4, height * 0.1 + yMod);
         } 
         
+        ping();
+        System.out.println("Current millis: " + millis());
     }
 
     void drawText(String displayText) {
@@ -113,6 +134,8 @@ class Game {
         myState = newState;
         JSONObject reqBody = new JSONObject();
         reqBody.setString("state", newState.name());
+
+        System.out.println("Built JSON " + millis());
         hostGame.postData("admin/state", reqBody);
     }
     
@@ -135,16 +158,9 @@ class Game {
         hostGame.sendRequest("admin/start");
         allocateRoles();
 
-        try {
-            //Allow players to see their roles 
-            TimeUnit.SECONDS.sleep(8);
-            //Then switch the game state once everyone is familiar with their roles
-            updateGameState(GameState.PLAYING);
-            updatePlayState(PlayState.NIGHT);
-        }
-        catch (InterruptedException ie) {
-            ie.printStackTrace();
-        }
+        updateGameState(GameState.ROLES);
+        timer = millis();
+        System.out.println("Timing...");
     }
 
     /*

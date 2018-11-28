@@ -28,7 +28,7 @@ class Host {
 
     Host() {
         genGameRoom();
-        roleAlloc = new ActionButton(Action.START_GAME, new PVector(width / 2, height * 0.65));
+        roleAlloc = new ActionButton(Action.START_GAME, new PVector(width / 2, height * 0.75));
 
         try {
             gameURL = new URL(String.format("%s/admin", baseURL));
@@ -112,26 +112,33 @@ class Host {
     ArrayList<String> postData(String endpoint, JSONObject data) {
         ArrayList<String> response = new ArrayList<String>();
         try {
+            StringBuilder bob = new StringBuilder();
             URL postURL = new URL(String.format("%s/%s", baseURL, endpoint));
             HttpURLConnection post = (HttpURLConnection) postURL.openConnection();
             post.setRequestMethod("POST");
             post.setRequestProperty("Content-Type", "application/json");
             post.setDoOutput(true);
 
+            System.out.println("Sent data: " + data.toString());
             PrintWriter postWriter = new PrintWriter(post.getOutputStream());
             postWriter.write(data.toString());
             postWriter.close();
 
             String inputLine;
             BufferedReader in = new BufferedReader(new InputStreamReader(post.getInputStream()));
-            while ((inputLine = in.readLine()) != null) 
+            while ((inputLine = in.readLine()) != null) {
                 response.add(inputLine);
+                bob.append(inputLine);
+            }
+            System.out.println("Received response." + millis());
             in.close();
+            System.out.printf("Closed Stream.\n%d\nRespons:\n\t%s\n", millis(), bob.toString());
         }
         catch(IOException ioe) {
             ioe.printStackTrace();
             return null;
         }
+        System.out.println("Returning response.");
         return response;
     }
 
