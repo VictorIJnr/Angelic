@@ -6,7 +6,8 @@ Plus, it's the most critical for rendering at different screen resolutions.
 */ 
 static final boolean isSpectre = true;
 
-static final int TEXT_SIZE = (isSpectre) ? 56 : 20;
+static final int TEXT_SIZE = (isSpectre) ? 42 : 12;
+static final int TITLE_TEXT_SIZE = (isSpectre) ? 56 : 20;
 
 Game myGame;
 PFont myFont;

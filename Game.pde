@@ -30,6 +30,8 @@ class Game {
     }
 
     void update() {
+        textSize(TEXT_SIZE);
+        ping();
     }
     
     void ping() {
@@ -52,13 +54,25 @@ class Game {
         //be quiet and look at their phone until it says it's day time
         //Angel's perform their murder at this time
         //Hope people don't cheat
-        myGame.update();
+        update();
+        drawPlayers();
 
         switch(myState) {
             case HOSTING:
-                drawText(String.format("The game room is set up at \"%s\"\n\nJoin the game " 
-                    + "by entering that URL onto your phone. When everyone's ready, press the "
-                    + "button.", hostGame.getGameURL()));
+                if (playerNames.isEmpty()) {
+                    textSize(TITLE_TEXT_SIZE);
+                    drawText(String.format("The game room is set up at \"%s\"\n\nJoin the game " 
+                        + "by entering that URL onto your phone. When everyone's ready, press the "
+                        + "button.", hostGame.getGameURL()));
+                    textSize(TEXT_SIZE);
+                }
+                else {
+                    rectMode(CENTER);
+                    text(String.format("Room URL:\n%s", hostGame.getGameURL()), width * 0.75, height * 0.15,
+                        width * 0.5, height * 0.25);
+                    rectMode(CORNER);
+                }
+
                 hostGame.draw();
                 break;
             case ROLES:
@@ -70,7 +84,7 @@ class Game {
                //Waiting for 8 seconds to pass
                 if (timer < millis() - 8000) {
                     updateGameState(GameState.PLAYING);
-                    updatePlayState(PlayState.NIGHT);
+                    updatePlayState(PlayState.NEWS);
                 }
                 break;
             case PLAYING:
@@ -79,20 +93,22 @@ class Game {
             case RESULTS:
                 break;
         }
-
-        for (int i = 0; i < playerNames.size(); i++) {
-            int nameSize = TEXT_SIZE / 3;
-            int yMod = nameSize * 2 * i;
-            text(playerNames.get(i) + " joined the lobby.", width / 4, height * 0.1 + yMod);
-        } 
-        
-        ping();
     }
 
     void drawText(String displayText) {
         rectMode(CENTER);
         fill(51);
         text(displayText, width / 2, height / 2, width * 0.75, height * 0.5); 
+        rectMode(CORNER);
+    }
+
+    void drawPlayers() {
+        if (myState == GameState.HOSTING) {
+            for (int i = 0; i < playerNames.size(); i++) {
+                int yMod = TEXT_SIZE * 2 * i;
+                text(playerNames.get(i) + " joined the lobby.", width / 5, height * 0.1 + yMod);
+            } 
+        }
     }
 
     void keyPress() {
@@ -133,7 +149,6 @@ class Game {
         myState = newState;
         JSONObject reqBody = new JSONObject();
         reqBody.setString("state", newState.name());
-
         hostGame.postData("admin/state", reqBody);
     }
     
@@ -158,7 +173,6 @@ class Game {
 
         updateGameState(GameState.ROLES);
         timer = millis();
-        System.out.println("Timing...");
     }
 
     /*

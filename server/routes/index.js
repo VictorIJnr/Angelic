@@ -93,7 +93,10 @@ router.get("/:room/admin/start", function(req, res) {
  * Endpoint to allow for state updates
 */
 router.post("/:room/admin/state", function(req, res) {
-    roomOutput(req.params.room, `Updating game state to ${req.body.state}`);
+    if (req.body.state)
+        roomOutput(req.params.room, `Updating game state to ${req.body.state}`);
+    else if (req.body.playState)
+        roomOutput(req.params.room, `Updating play state to ${req.body.playState}`);
     updateStateFile(req.params.room, req.body);
 
     //Just to make sure the Java doesn't hang waiting for a response
