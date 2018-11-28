@@ -132,7 +132,6 @@ router.get("/:room/players/states", function(req, res) {
             //And shoves it into the allPlayers array
             getFile(req.params.room, name).then((data) => allPlayers.push(data));
             
-
             //Need to ensure all the players are added, given that this is async
             if (allPlayers.length == numPlayers) {
                 console.log("Sending back all of the connected players.");
@@ -255,18 +254,18 @@ router.get("/:room/player/state", function(req, res) {
 router.post("/:room/vote", function(req, res) {
     getStateFile(req.params.room)
     .then((data) => {
-        roomOutput(req.params.room, `${req.body.playerName} voted ${req.body.vote.toLowerCase()}`)
+        roomOutput(req.params.room, `${req.body.voter} voted ${req.body.decision.toLowerCase()}`)
         let gameState = data;
         fileExists(req.params.room, `Day ${gameState.day} Voting.json`)
         .then(() => {
             let myVote = {};
-            myVote[req.body.playerName] = req.body.vote;
+            myVote[req.body.voter] = req.body.vote;
             //Append a new vote
         })
         .catch(() => {
             //Create the voting file and append the vote
-            let vote = {};
-            vote[req.body.playerName] = req.body.vote;
+            let vote = req.body;
+            console.log(vote);
     
             uploadJSON(req.params.room, `Day ${gameState.day} Voting.json`, vote);
         });

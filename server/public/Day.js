@@ -6,8 +6,9 @@ class Day {
         this.guiltyBtn = new Button(width * 0.25, height * 0.875, 200, 65, "Guilty", () => {
             let gamePlayer = myGame.getPlayer();
             let myVote = {
-                playerName: gamePlayer.getName(),
-                vote: "GUILTY"
+                voter: gamePlayer.getName(),
+                against: this.getPlayer(),
+                decision: "GUILTY"
             };
             myGame.postRequest("vote/", myVote);
         });
@@ -15,8 +16,9 @@ class Day {
         this.innoBtn = new Button(width * 0.75, height * 0.875, 200, 65, "Innocent", () => {
             let gamePlayer = myGame.getPlayer();
             let myVote = {
-                playerName: gamePlayer.getName(),
-                vote: "INNOCENT"
+                voter: gamePlayer.getName(),
+                against: this.getPlayer(),
+                decision: "INNOCENT"
             };
             myGame.postRequest("vote/", myVote);
         });
