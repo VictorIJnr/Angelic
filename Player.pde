@@ -8,6 +8,9 @@ class Player {
     ArrayList<Votes> myVotes;
     boolean isAlive = true;
 
+    //Only here for the listify method
+    Player() {}
+
     Player(String myName) {
         this.myName = myName;
         myVotes = new ArrayList<Votes>();
@@ -23,6 +26,7 @@ class Player {
 
     void fromJSON() {
         //TODO
+        //Do I actually need this?
     }
 
     JSONObject toJSON() {
@@ -37,6 +41,21 @@ class Player {
         retObj.setString("role", myRole.name());
         retObj.setJSONArray("votes", retVotes);
 
+        return retObj;
+    }
+
+    /*
+    * Puts all of the specified players into a single JSON Array to be stored server-side
+    * I want to make this static but Processing won't let me
+    */
+    JSONObject listify(HashMap<String, Player> allPlayers) {
+        JSONObject retObj = new JSONObject();
+        JSONArray playerArray = new JSONArray();
+
+        for (Player player : allPlayers.values())
+            playerArray.append(player.toJSON());
+
+        retObj.setJSONArray("players", playerArray);
         return retObj;
     }
 }

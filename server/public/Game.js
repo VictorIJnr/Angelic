@@ -76,6 +76,7 @@ class Game {
         httpGet(`${this.endpoint}/state`, "json", (data) => {
             if (data.state != "HOSTING") {
                 this.gameData = data;
+                console.log(data);
             }
         });
     }

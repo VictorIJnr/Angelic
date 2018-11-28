@@ -104,6 +104,16 @@ router.post("/:room/admin/state", function(req, res) {
 });
 
 /** 
+ * Endpoint to allow the host to update the JSON file storing a list of 
+ * all connected players
+*/
+router.post("/:room/admin/players/states", function(req, res) {
+    uploadJSON(req.params.room, "All Players", req.body.players)
+    .then(() => res.send("Done"));
+    //Leaving out the catch, I want to see this crash whilst debugging
+});
+
+/** 
  * Endpoint to retrieve a list of all the connected players
 */
 router.get("/:room/players", function(req, res) {
@@ -149,7 +159,7 @@ router.get("/:room/players/states", function(req, res) {
 
 /**
  * Endpoint for connecting a player to the game room.
- */
+*/
 router.get("/:room/player", function(req, res) {
     //Check if the room exists in DigitalOcean
     //If not, send cannot join which will be processed and rendered by the user

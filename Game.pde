@@ -176,6 +176,7 @@ class Game {
         hostGame.sendRequest("admin/start");
         allocateRoles();
 
+        hostGame.postData("admin/players/states", new Player().listify(allPlayers));
         updateGameState(GameState.ROLES);
         timer = millis();
     }
