@@ -4,7 +4,7 @@ import java.util.concurrent.*;
 //NAMING and LOBBY are exclusive to the client-side aspect of the game
 //LOBBY indicates waiting for more players to join the game
 enum GameState {
-    MENU, HOSTING, NAMING, LOBBY, ROLES, PLAYING, RESULTS;
+    HOSTING, ROLES, PLAYING, RESULTS;
 }
 
 enum PlayState {
@@ -17,8 +17,8 @@ class Game {
     GameState myState = GameState.HOSTING;
     PlayState myPlayState = PlayState.NIGHT;
 
-    Menu myMenu = new Menu();
     Host hostGame = new Host();
+    Day myDay = new Day();
     HashMap<String, Player> allPlayers = new HashMap<String, Player>();
     ArrayList<String> playerNames = new ArrayList<String>();
 
@@ -42,14 +42,37 @@ class Game {
         //Hope people don't cheat
         myGame.update();
 
-        myMenu.draw();
+        switch(myState) {
+            case HOSTING:
+                drawText(String.format("The game room is set up at \"%s\"\n\nJoin the game " 
+                    + "by entering that URL onto your phone. When everyone's ready, press the "
+                    + "button.", hostGame.getGameURL()));
+                hostGame.draw();
+                break;
+            case ROLES:
+                drawText("Your roles have been assigned, you can find them on your device.");
+                break;
+            case PLAYING:
+                myDay.draw();
+                break;
+            case RESULTS:
+                break;
+        }
+
         hostGame.ping();
 
         for (int i = 0; i < playerNames.size(); i++) {
-            int yMod = TEXT_SIZE * 2 * i;
+            int nameSize = TEXT_SIZE / 3;
+            int yMod = nameSize * 2 * i;
             text(playerNames.get(i) + " joined the lobby.", width / 4, height * 0.1 + yMod);
         } 
         
+    }
+
+    void drawText(String displayText) {
+        rectMode(CENTER);
+        fill(51);
+        text(displayText, width / 2, height / 2, width * 0.75, height * 0.5); 
     }
 
     void keyPress() {
@@ -80,7 +103,7 @@ class Game {
     }
 
     void mouseClick() {
-        myMenu.mouseClick();
+        if (myState == GameState.HOSTING) hostGame.mouseClick();
     }
 
     /*
@@ -114,7 +137,7 @@ class Game {
 
         try {
             //Allow players to see their roles 
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(8);
             //Then switch the game state once everyone is familiar with their roles
             updateGameState(GameState.PLAYING);
             updatePlayState(PlayState.NIGHT);

@@ -23,8 +23,12 @@ class Host {
     String gameRoom;
     boolean pinged = false;
 
+    //Button used to allocate roles to players
+    ActionButton roleAlloc;
+
     Host() {
         genGameRoom();
+        roleAlloc = new ActionButton(Action.START_GAME, new PVector(width / 2, height * 0.65));
 
         try {
             gameURL = new URL(String.format("%s/admin", baseURL));
@@ -34,14 +38,12 @@ class Host {
         } 
     }
 
-    void startServer() {
-        myServer = new Server(myApplet, 20793);
+    void draw() {
+        roleAlloc.draw();
     }
 
-    void readData() {
-        myServer.write("HEllo there!\n");
-        // myClient = myServer.available();
-        // if (myClient != null) process();
+    void mouseClick() {
+        roleAlloc.mouseClicked();
     }
 
     /*
@@ -68,10 +70,6 @@ class Host {
                 e.printStackTrace();
             }
         }
-    }
-
-    void process() {
-        // System.out.println("Connection");
     }
 
     /*
@@ -135,5 +133,9 @@ class Host {
             return null;
         }
         return response;
+    }
+
+    String getGameURL() {
+        return baseURL;
     }
 }
