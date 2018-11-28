@@ -30,6 +30,7 @@ class Game {
     }
 
     void update() {
+        fill(51);
         textSize(TEXT_SIZE);
         ping();
     }
@@ -102,6 +103,9 @@ class Game {
         rectMode(CORNER);
     }
 
+    /*
+    *   Writes the names of all the players who have joined the lobby
+    */
     void drawPlayers() {
         if (myState == GameState.HOSTING) {
             for (int i = 0; i < playerNames.size(); i++) {
@@ -140,6 +144,7 @@ class Game {
 
     void mouseClick() {
         if (myState == GameState.HOSTING) hostGame.mouseClick();
+        if (myState == GameState.PLAYING) myDay.mouseClick();
     }
 
     /*
@@ -226,7 +231,20 @@ class Game {
         playerNames.addAll(newPlayers);
     }
 
+    /*
+        "Proxy" to send a GET request to the server
+        Just eliminating the need to have a getter for hostGame and later 
+        perform the request from there
+    */
+    ArrayList<String> sendRequest(String endpoint) {
+        return hostGame.sendRequest(endpoint);
+    }
+
     PlayState getPlayState() {
         return myPlayState;
+    }
+
+    Day getDay() {
+        return myDay;
     }
 }

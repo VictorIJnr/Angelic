@@ -44,6 +44,7 @@ class Game {
                     break;
                 case "ROLES":
                     this.drawText(`You've been assigned to play as ${this.player.displayRole()}\n`);
+                    console.log(this.gameData.playState);
                     break;
                 case "PLAYING":
                     this.myDay.draw();

@@ -73,7 +73,7 @@ class Host {
     }
 
     /*
-        Generates the code which will be used for the game room.
+    * Generates the code which will be used for the game room.
     */
     void genGameRoom() {
         StringBuilder code = new StringBuilder();
@@ -85,6 +85,9 @@ class Host {
         baseURL += "/" + gameRoom;
     }
 
+    /*
+    * Performs a GET request to the specified endpoint
+    */
     ArrayList<String> sendRequest(String endpoint) {
         ArrayList<String> response = new ArrayList<String>();
 
@@ -107,7 +110,7 @@ class Host {
     }
 
     /*
-        Allows for sending a post request to an endpoint on the server.
+    * Allows for sending a POST request to an endpoint on the server.
     */
     ArrayList<String> postData(String endpoint, JSONObject data) {
         ArrayList<String> response = new ArrayList<String>();
