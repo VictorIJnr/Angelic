@@ -47,7 +47,7 @@ class Player {
     }
 
     Player fromJSON(String source) {
-        return fromJSON(parseJSONObjec(source));
+        return fromJSON(parseJSONObject(source));
     }
 
     JSONObject toJSON() {

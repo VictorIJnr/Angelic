@@ -23,18 +23,28 @@ class Day {
             myGame.postRequest("vote/", myVote);
         });
 
+        //Button to navigate to the next player in the game
         this.nextPlayer = new Button(width * 0.85, height / 2, 40, 40, ">", () => {
             let allPlayers = myGame.getAllAlivePlayers();
             let numPlayers = allPlayers.length;
             this.currPlayer = Math.abs((this.currPlayer + 1) % numPlayers);
-            console.log(this.currPlayer);
         });
         
+        //Button to navigate to the previous player in the game
         this.prevPlayer = new Button(width * 0.15, height / 2, 40, 40, "<", () => {
             let allPlayers = myGame.getAllAlivePlayers();
             let numPlayers = allPlayers.length;
             this.currPlayer = Math.abs((this.currPlayer - 1) % numPlayers);
-            console.log(this.currPlayer);
+        });
+
+        this.nominate = new Button(width * 0.5, height * 0.875, 200, 65, "Nominate", () => {
+            let gamePlayer = myGame.getPlayer();
+            let nomination = {
+                voter: gamePlayer.getName(),
+                against: this.getPlayer(),
+                decision: "NOMINATION"
+            };
+            myGame.postRequest("vote/", nomination);
         });
 
         this.pingedPlayers = false;
@@ -60,26 +70,72 @@ class Day {
     }
 
     drawButtons() {
-        this.innoBtn.draw();
-        this.guiltyBtn.draw();
-        this.nextPlayer.draw();
-        this.prevPlayer.draw();
+        let playState = myGame.getGameData().playState;
+
+        switch (playState) {
+            case "NOMINATION":
+                this.nominate.draw();
+                this.nextPlayer.draw();
+                this.prevPlayer.draw();
+                break;
+            case "VOTING":
+                this.innoBtn.draw();
+                this.guiltyBtn.draw();
+                this.nextPlayer.draw();
+                this.prevPlayer.draw();
+                break;
+            default:
+                break;
+        }
     }
 
     draw() {
+        let playState = myGame.getGameData().playState;
+
         this.update();
         this.drawButtons();
-        //At this point, the screen will tell everyone to nominate someone to lynch
-        myGame.drawText(`${this.getPlayer()}\n`);
+
+        // NEWS, NOMINATION, INVEST, VOTING, LYNCHING, NIGHT
+
+        switch (playState) {
+            case "NEWS":
+                myGame.drawText("Look up at the screen to see the events " 
+                    + "that unfolded at night.");
+                break;
+            case "NOMINATION":
+            //At this point, the screen will tell everyone to nominate someone to lynch
+                myGame.drawText(`${this.getPlayer()}`);
+                break;
+            case "LYNCHING":
+                //TODO
+                //Enter the name of the player that was killed
+                myGame.drawText("Player Name was executed!");
+                break;
+            default:
+                break;
+        }
     }
 
     mouseClick() {
         let gameState = myGame.getGameData();
         if (gameState.state == "PLAYING") {
-            this.innoBtn.mouseClick();
-            this.guiltyBtn.mouseClick();
-            this.nextPlayer.mouseClick();
-            this.prevPlayer.mouseClick();
+            let playState = gameState.playState;
+
+            switch (playState) {
+                case "NOMINATION":
+                    this.nominate.mouseClick();
+                    this.nextPlayer.mouseClick();
+                    this.prevPlayer.mouseClick();
+                    break;
+                case "VOTING":
+                    this.innoBtn.mouseClick();
+                    this.guiltyBtn.mouseClick();
+                    this.nextPlayer.mouseClick();
+                    this.prevPlayer.mouseClick();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

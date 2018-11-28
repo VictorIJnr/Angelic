@@ -34,6 +34,9 @@ router.get("/:room/state", function(req, res) {
     .catch((err) => res.send("An error occurred querying room state."));
 });
 
+/** 
+ * Endpoint to allow the host to set up a room.
+*/
 router.get("/:room/admin", function(req, res) {
     console.log(`Setting up room ${req.params.room}`);
 
@@ -94,9 +97,9 @@ router.get("/:room/admin/start", function(req, res) {
 */
 router.post("/:room/admin/state", function(req, res) {
     if (req.body.state)
-        roomOutput(req.params.room, `Updating game state to ${req.body.state}`);
-    else if (req.body.playState)
-        roomOutput(req.params.room, `Updating play state to ${req.body.playState}`);
+        roomOutput(req.params.room, `The game state is ${req.body.state} now.`);
+    if (req.body.playState)
+        roomOutput(req.params.room, `The play state is ${req.body.playState} now.`);
     updateStateFile(req.params.room, req.body);
 
     //Just to make sure the Java doesn't hang waiting for a response
@@ -253,24 +256,42 @@ router.get("/:room/player/state", function(req, res) {
     .catch((err) => res.send("An error occured when pinging player state."));
 });
 
+/** 
+ * Endpoint to handle voting and nominations
+*/
 router.post("/:room/vote", function(req, res) {
     getStateFile(req.params.room)
     .then((data) => {
-        roomOutput(req.params.room, `${req.body.voter} voted ${req.body.decision.toLowerCase()}`)
+        roomOutput(req.params.room, `${req.body.voter} voted ${req.body.decision.toLowerCase()}`);
         let gameState = data;
-        fileExists(req.params.room, `Day ${gameState.day} Voting.json`)
-        .then(() => {
-            let myVote = {};
-            myVote[req.body.voter] = req.body.vote;
-            //Append a new vote
-        })
-        .catch(() => {
-            //Create the voting file and append the vote
-            let vote = req.body;
-            console.log(vote);
-    
-            uploadJSON(req.params.room, `Day ${gameState.day} Voting.json`, vote);
-        });
+        
+        if (req.body.decision != "NOMINATION") {
+            //Handling a vote of innocent or guilty against a player
+
+            fileExists(req.params.room, `Day ${gameState.day} Voting.json`)
+            .then(() => {
+                //Append a new vote
+                updateFile(req.params.room, `Day ${gameState.day} Voting.json`, req.body);
+            })
+            .catch(() => {
+                //Create the voting file and append the vote
+                uploadJSON(req.params.room, `Day ${gameState.day} Voting.json`, req.body);
+            });
+        }
+        else {
+            //Handling nomination for a player to be lynched/investigated
+
+            fileExists(req.params.room, `Day ${gameState.day} Nominations.json`)
+            .then(() => {
+                //Append a new vote
+                updateFile(req.params.room, `Day ${gameState.day} Nominations.json`, req.body);
+            })
+            .catch(() => {
+                //Create the voting file and append the vote
+                uploadJSON(req.params.room, `Day ${gameState.day} Nominations.json`, req.body);
+            });
+        }
+
     })
     .catch();
 });
@@ -372,25 +393,29 @@ function getStateFile(room) {
     return getFile(room, demoFile);
 }
 
+function updateFile(room, fileName, newFields) {
+    return new Promise((resolve, reject) => {
+        getFile(room, fileName)
+        .then((data) => {
+            let newData = {...data, ...newFields};
+    
+            uploadJSON(room, fileName, newData)
+            .then(resolve).catch(reject);
+        })
+        .catch((err) => {
+            console.log(`Error updating ${fileName}.\n${err}`);
+            reject(err);
+        });
+    });
+}
+
 /**
  * Updates the state of the provided room.
  * @param {String} room the room to have its state updated
  * @param {Object} newFields the fields to update/add 
  */
 function updateStateFile(room, newFields) {
-    return new Promise((resolve, reject) => {
-        getStateFile(room)
-        .then((data) => {
-            let newState = {...data, ...newFields};
-    
-            uploadJSON(room, demoFile, newState)
-            .then(resolve).catch(reject);
-        })
-        .catch((err) => {
-            console.log(`Error updating room state.\n${err}`);
-            reject(err);
-        });
-    });
+    return updateFile(room, demoFile, newFields);
 }
 
 /**

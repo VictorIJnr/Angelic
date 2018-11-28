@@ -78,7 +78,6 @@ class ActionButton extends Button<Action> {
     @Override
     void draw(color rectFill, color textFill) {
         String buttonText = "";
-        if (myAction == Action.START_GAME) 
         switch (myAction) {
             case START_GAME:
                 buttonText = "Start the Game";

@@ -83,10 +83,10 @@ class Game {
                 //Then switch the game state once everyone is familiar with their roles
                 drawText("Your roles have been assigned, you can find them on your device.");
                
-               //Waiting for 8 seconds to pass
-                if (timer < millis() - 8000) {
-                    updateGameState(GameState.PLAYING);
-                    updatePlayState(PlayState.NEWS);
+               //Waiting for 5 seconds to pass before updating the states
+                if (millis() - timer > 5000) {
+                    updateStates(GameState.PLAYING, PlayState.NEWS);
+                    myDay.startTimer();
                 }
                 break;
             case PLAYING:
@@ -151,14 +151,21 @@ class Game {
         if (myState == GameState.PLAYING) myDay.mouseClick();
     }
 
+    void updateStates(GameState newGameState, PlayState newPlayState) {
+        myState = (newGameState != null) ? newGameState : myState;
+        myPlayState = (newPlayState != null) ? newPlayState : myPlayState;
+
+        JSONObject reqBody = new JSONObject();
+        reqBody.setString("state", myState.name());
+        reqBody.setString("playState", myPlayState.name());
+        hostGame.postData("admin/state", reqBody);
+    }
+
     /*
         Updates the current state of game.
     */
     void updateGameState(GameState newState) {
-        myState = newState;
-        JSONObject reqBody = new JSONObject();
-        reqBody.setString("state", newState.name());
-        hostGame.postData("admin/state", reqBody);
+        updateStates(newState, null);
     }
     
     /*
@@ -166,10 +173,7 @@ class Game {
         Only utilised while the GameState is PLAYING.
     */
     void updatePlayState(PlayState newState) {
-        myPlayState = newState;
-        JSONObject reqBody = new JSONObject();
-        reqBody.setString("playState", newState.name());
-        hostGame.postData("admin/state", reqBody);
+        updateStates(null, newState);
     }
 
     /*
