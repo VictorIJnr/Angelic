@@ -120,7 +120,14 @@ router.post("/:room/admin/players/states", function(req, res) {
  * Endpoint to update the angel to use as a killer
 */
 router.post("/:room/admin/killer", function(req, res) {
-    uploadJSON(req.param.room, "Killer", req.body.killer).then(res.send(req.body.killer));
+    roomOutput("SETTING UP THE KILLER RIGHT HERE FAM");
+    console.log(req.body);
+    uploadJSON(req.params.room, req.body.name.toUpperCase(), req.body).then(res.send(req.body));
+});
+
+router.post("/:room/admin/kek", function(req, res) {
+    roomOutput("( ͡° ͜ʖ ͡°)");
+    res.send("YOU JUST GOT FUCKED M80");
 });
 
 /**

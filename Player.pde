@@ -7,13 +7,13 @@ class Player {
     String myName;
     ArrayList<Votes> myVotes;
     boolean isAlive = true;
+    boolean isKiller = false;
 
     //Only here for the listify method
     Player() {}
 
     Player(String myName) {
         this.myName = myName;
-        myVotes = new ArrayList<Votes>();
     }
 
     void setRole(Roles role) {
@@ -22,6 +22,10 @@ class Player {
 
     void setLiving(boolean isAlive) {
         this.isAlive = isAlive;
+    }
+
+    void setKiller(boolean isKiller) {
+        this.isKiller = isKiller;
     }
 
     String getName() {
@@ -42,6 +46,7 @@ class Player {
         retPlayer.setRole((source.getString("role").equals("ANGEL")) 
             ? Roles.ANGEL : Roles.HUMAN);
         retPlayer.setLiving(source.getBoolean("isAlive"));
+        retPlayer.setKiller(source.getBoolean("isKiller"));
 
         return retPlayer;
     }
@@ -52,15 +57,10 @@ class Player {
 
     JSONObject toJSON() {
         JSONObject retObj = new JSONObject();
-        JSONArray retVotes = new JSONArray();
-
-        int i = 0;
-        for (Votes votes : myVotes)
-            retVotes.setJSONArray(i++, votes.toJSON());
 
         retObj.setString("name", myName);
         retObj.setBoolean("isAlive", isAlive);
-        retObj.setJSONArray("votes", retVotes);
+        retObj.setBoolean("isKiller", isKiller);
         retObj.setString("role", myRole.name());
 
         return retObj;

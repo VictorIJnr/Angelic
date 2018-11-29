@@ -10,6 +10,9 @@ class Day {
     
     //The player to be executed at the end of a day.
     Player exePlayer;
+    
+    //The angel to murder another player at night.
+    Player killer;
 
     Day() {
         voteButton = new ActionButton(Action.END_VOTING, new PVector(width / 2, height / 2));
@@ -20,6 +23,7 @@ class Day {
         switch (myGame.getPlayState()) {
             case NEWS:
                 myGame.drawText("Did someone die? IDK.");
+                if (killer != null) resetKiller();
 
                 //Give enough time to display the news
                 if (millis() - timer > 1e3) 
@@ -91,7 +95,10 @@ class Day {
                     //The results will be displayed for 10 seconds before switching
                     //to the next state of play
                     if (millis() - subTimer > 10e3) {
+                        //This is called here to ensure the murdering Angel is chosen before the nighttime  
+                        selectKiller();
                         voteFlag = false;
+
                         if (numGuilty > numInno) 
                             changePlayState(PlayState.LYNCHING);
                         else
@@ -140,14 +147,27 @@ class Day {
         ArrayList<Player> allAngels = new ArrayList<Player>();
 
         for (String json : playerJSONs) {
-            Player foo = new Player();
+            System.out.println(json);
+            Player foo = new Player().fromJSON(json);
             if (foo.isAngel())
-                allAngels.add(foo.fromJSON(json));
+                allAngels.add(foo);
         }
 
         //This is the only line where the selection is done, the rest just filter the players
-        Player killer = allAngels.get((int) random(allAngels.size()));
-        myGame.postData("admin/killer", killer.toJSON());
+        killer = allAngels.get((int) random(allAngels.size()));
+        killer.setKiller(true);
+
+        ArrayList<String> res;
+        res = myGame.postData("admin/kek", killer.toJSON());
+
+        for (String line : res) {
+            System.out.println(line);
+        }
+    }
+
+    void resetKiller() {
+        killer.setKiller(false);
+        myGame.postData("admin/kek", killer.toJSON());
     }
 
     void mouseClick() {
