@@ -309,6 +309,14 @@ router.post("/:room/vote", function(req, res) {
 });
 
 /**
+ * Endpoint to let the killer angel decide on the human they are going to murder 
+*/
+router.post("/:room/kill", function(req, res) {
+    updateFile(req.params.room, req.body.playerName.toUpperCase(), {isAlive: false})
+    .then(res.send("Sent kill signal"));
+});
+
+/**
  * @param {String} room the room for which to retrieve filenames
  * @returns a promise loaded with all the filenames
  */
@@ -425,7 +433,7 @@ function updateFile(room, fileName, newFields) {
  * Updates the state of the provided room.
  * @param {String} room the room to have its state updated
  * @param {Object} newFields the fields to update/add 
- */
+*/
 function updateStateFile(room, newFields) {
     return updateFile(room, demoFile, newFields);
 }
@@ -433,7 +441,7 @@ function updateStateFile(room, newFields) {
 /**
  * Checks for the existence of a file on DigitalOcean 
  * @param {String} fileName the file to check for its existence
- * */
+*/
 function fileExists(room, fileName) {
     let params = {
         Bucket: myDigiBucket,
@@ -461,7 +469,7 @@ function fileExists(room, fileName) {
 
 /**
  * Helper function to determine the existence of a room
- *  */
+*/
 function roomExists(room) {
     let params = {
         Bucket: myDigiBucket,
@@ -482,7 +490,7 @@ function roomExists(room) {
  * Determines whether a player name has already been taken on DigitalOcean
  * @param playerName the name to check
  * @param room the room to check for the player
- */
+*/
 function uniquePlayer(playerName, room) {
     //I don't need the data from the file, its presence is enough
     let newPlayer = new Promise((resolve, reject) => {
@@ -498,7 +506,7 @@ function uniquePlayer(playerName, room) {
  * Adds a new player to the game
  * @param {String} playerName the new player added to the game 
  * @param {String} room the room which the player is joining 
- */
+*/
 function addPlayer(playerName, room) {
     //The player file will be updated with information later
     //such as their role and who they've voted against.
@@ -514,6 +522,11 @@ function addPlayer(playerName, room) {
     .catch((err) => console.error(`Error in getting state file from add player.\n${err}`));
 }
 
+/**
+ * Helper function to  
+ * @param {String} room the number of the room for the output 
+ * @param {String} text the text to output to the console 
+*/
 function roomOutput(room, text) {
     console.log(`Room ${room}:\t${text}`);
 }

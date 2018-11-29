@@ -86,6 +86,8 @@ class Game {
         if (this.gameData && this.player) {
             httpGet(`${this.endpoint}/player/state`, "json", (data) => {
                 if (typeof data.role != "undefined") this.player.setRole(data.role);
+                if (typeof data.isAlive != "undefined") this.player.setAlive(data.isAlive);
+                if (typeof data.isKiller != "undefined") this.player.setKiller(data.isKiller);
             });
         }
     }

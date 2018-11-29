@@ -3,7 +3,8 @@ class Day {
     int dayNum = 1;
     
     int timer;
-    int subTimer;
+    int subTimer = 0;
+    int numGuilty = 0, numInno = 0;
 
     boolean voteFlag = false;
     
@@ -21,7 +22,8 @@ class Day {
                 myGame.drawText("Did someone die? IDK.");
 
                 //Give enough time to display the news
-                if (millis() - timer > 10e3) 
+                if (millis() - timer > 1e3) 
+                // if (millis() - timer > 10e3) 
                     changePlayState(PlayState.NOMINATION);
                 break;
             case NOMINATION:
@@ -33,40 +35,51 @@ class Day {
                     changePlayState(PlayState.VOTING);
                 break;
             case INVEST:
+                //TODO add this
                 break;
             case VOTING:
                 //TODO
                 //Enter the player's name 
                 //Check whether to transition to the Lynch state or to the night based on votes
-                myGame.drawText("Vote to decide on the fate of player to be executed.");
+                if (!voteFlag) myGame.drawText("Vote to decide on the fate of player to be executed.");
 
                 //Allowing 30 seconds to decide on the player to execute
-                if (millis() - timer > 30e3) {
+                if (millis() - timer > 3e3) {
+                // if (millis() - timer > 30e3) {
                     //Ensuring that the votes are not retrieved an excess amount of times
                     if (!voteFlag) {
-                        int numGuilty = 0, numInno = 0;
 
                         //Retrieve all of the votes from players.
                         ArrayList<String> votes = myGame.sendRequest("admin/votes");
                         Votes allVotes = new Votes();
 
-                        for (String voteJSON : votes)
+                        if (hasVotes(votes)) {
+                            for (String voteJSON : votes)
                             allVotes.add(new Vote().fromJSON(voteJSON));
-
-                        //Counting all of the guilty and innocent votes.
-                        for (Vote vote : votes) {
-                            if (!vote.isNomination()) {
-                                if (vote.isGuilty()) numGuilty++;
-                                else numInno++;
+                        
+                            //Counting all of the guilty and innocent votes.
+                            for (Vote vote : allVotes) {
+                                if (!vote.isNomination()) {
+                                    if (vote.isGuilty()) numGuilty++;
+                                    else numInno++;
+                                }
                             }
-                        }
 
-                        exePlayer = allVotes.get(0).getDefendant();
+                            exePlayer = allVotes.get(0).getDefendant();
+                        }
+                        else {
+                            numGuilty = -1;
+                        }
+                        
                         subTimer = millis();
+                        voteFlag = true;
                     }
 
                     //Displaying the results of the voting on the host screen
-                    if (numGuilty > numInno)
+                    if (numGuilty == -1)
+                        myGame.drawText(String.format("No one will be executed today as "
+                            + "nobody voted."));
+                    else if (numGuilty > numInno)
                         myGame.drawText(String.format("%s will be executed.\nThere were %d "
                             + "guilty votes and %d innocent votes.", exePlayer.getName(),
                             numGuilty, numInno));
@@ -78,6 +91,7 @@ class Day {
                     //The results will be displayed for 10 seconds before switching
                     //to the next state of play
                     if (millis() - subTimer > 10e3) {
+                        voteFlag = false;
                         if (numGuilty > numInno) 
                             changePlayState(PlayState.LYNCHING);
                         else
@@ -86,19 +100,24 @@ class Day {
                 }
                 break;
             case LYNCHING:
-                //TODO
-                //Get the name of the player executed
-                myGame.drawText(String.format("%s has been executed!", exePlayer.getName());
+                myGame.drawText(String.format("%s has been executed!", exePlayer.getName()));
 
-                if (millis() - timer > 15e3)
+                //TODO determine the end of the game and move into the RESULTS game state
+
+                if (millis() - timer > 15e3) {
+                    // exePlayer.kill();
+                    myGame.killPlayer(exePlayer.getName());
                     changePlayState(PlayState.NIGHT);
+                }
                 break;
             case NIGHT:
                 myGame.drawText("It's the night time, everyone goes to sleep, apart from one angel...");
 
                 //Give the angel(s) enough time to decide who to kill
-                if (millis() - timer > 25e3)
+                if (millis() - timer > 25e3) {
+                    // update the players for myGame such that the murdered player (if any) dies
                     changePlayState(PlayState.NEWS);
+                }
                 break;
         }
     }
@@ -142,6 +161,11 @@ class Day {
     void changePlayState(PlayState newPlayState) {
         myGame.updatePlayState(newPlayState);
         timer = millis();
+    }
+
+    boolean hasVotes(ArrayList<String> voteResponse) {
+        //This is only found in the response when there are no votes for the day
+        return !voteResponse.get(0).contains("NoSuchKey");
     }
 
 }

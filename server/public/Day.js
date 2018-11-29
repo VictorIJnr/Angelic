@@ -3,6 +3,7 @@ class Day {
         this.dayNo = 1;
         this.currPlayer = 0;
 
+        //Button to allow a player to accuse a player of being guilty
         this.guiltyBtn = new Button(width * 0.25, height * 0.875, 200, 65, "Guilty", () => {
             let gamePlayer = myGame.getPlayer();
             let myVote = {
@@ -13,6 +14,7 @@ class Day {
             myGame.postRequest("vote/", myVote);
         });
 
+        //Button to pardon a nominated player as they are innocent
         this.innoBtn = new Button(width * 0.75, height * 0.875, 200, 65, "Innocent", () => {
             let gamePlayer = myGame.getPlayer();
             let myVote = {
@@ -37,6 +39,7 @@ class Day {
             this.currPlayer = Math.abs((this.currPlayer - 1) % numPlayers);
         });
 
+        //Button to nominate a player to be executed
         this.nominate = new Button(width * 0.5, height * 0.875, 200, 65, "Nominate", () => {
             let gamePlayer = myGame.getPlayer();
             let nomination = {
@@ -45,6 +48,14 @@ class Day {
                 decision: "NOMINATION"
             };
             myGame.postRequest("vote/", nomination);
+        });
+
+        this.kill = new Button(width * 0.5, height * 0.875, 200, 65, "Kill Player", () => {
+            let murdered = {
+                playerName: this.getPlayer()
+            }
+
+            myGame.postRequest("kill/", murdered);
         });
 
         this.pingedPlayers = false;
@@ -84,6 +95,12 @@ class Day {
                 this.nextPlayer.draw();
                 this.prevPlayer.draw();
                 break;
+            case "NIGHT":
+                if (myGame.getPlayer().isKiller) {
+                    this.kill.draw();
+                    this.nextPlayer.draw();
+                    this.prevPlayer.draw();
+                }
             default:
                 break;
         }
@@ -91,19 +108,28 @@ class Day {
 
     draw() {
         let playState = myGame.getGameData().playState;
+        //Apparently isAlive is not a function... GG JavaScript
+        let isAlive = myGame.getPlayer().isAlive; 
 
         this.update();
-        this.drawButtons();
+        if (isAlive) this.drawButtons();
 
         // NEWS, NOMINATION, INVEST, VOTING, LYNCHING, NIGHT
 
         switch (playState) {
             case "NEWS":
+                if (!isAlive) {
+                    rectMode(CENTER);
+                    fill("#FF0000");
+                    text("You have died.", width / 2, height / 5, width * 0.75, height / 2);
+                }
                 myGame.drawText("Look up at the screen to see the events " 
                     + "that unfolded at night.");
                 break;
             case "NOMINATION":
             //At this point, the screen will tell everyone to nominate someone to lynch
+            case "VOTING":
+            //In voting, the name of the person with the most nominations is brought to the stand
                 myGame.drawText(`${this.getPlayer()}`);
                 break;
             case "LYNCHING":
@@ -111,14 +137,19 @@ class Day {
                 //Enter the name of the player that was killed
                 myGame.drawText("Player Name was executed!");
                 break;
+            case "NIGHT":
+                if (myGame.getPlayer().isKiller)
+                    myGame.drawText("You've been appointed by God to kill a human."
+                        + "\nGo ahead and choose...");
             default:
+                if (!isAlive) myGame.drawText("You have died");
                 break;
         }
     }
 
     mouseClick() {
         let gameState = myGame.getGameData();
-        if (gameState.state == "PLAYING") {
+        if (gameState && gameState.state == "PLAYING") {
             let playState = gameState.playState;
 
             switch (playState) {
@@ -133,6 +164,8 @@ class Day {
                     this.nextPlayer.mouseClick();
                     this.prevPlayer.mouseClick();
                     break;
+                case "NIGHT":
+                    if (myGame.getPlayer().isKiller) this.kill.mouseClick();
                 default:
                     break;
             }

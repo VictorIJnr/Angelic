@@ -272,4 +272,8 @@ class Game {
     HashMap<String, Player> getPlayerMap() {
         return allPlayers;
     }
+
+    void killPlayer(String playerName) {
+        allPlayers.get(playerName).kill();
+    }
 }
