@@ -1,7 +1,14 @@
 class Day {
     ActionButton voteButton;
     int dayNum = 1;
+    
     int timer;
+    int subTimer;
+
+    boolean voteFlag = false;
+    
+    //The player to be executed at the end of a day.
+    Player exePlayer;
 
     Day() {
         voteButton = new ActionButton(Action.END_VOTING, new PVector(width / 2, height / 2));
@@ -21,7 +28,8 @@ class Day {
                 myGame.drawText("Nominate a player to be executed.");
 
                 //Allowing 120 seconds for a nomination phase
-                if (millis() - timer > 120e3) 
+                if (millis() - timer > 1e3) 
+                // if (millis() - timer > 120e3) 
                     changePlayState(PlayState.VOTING);
                 break;
             case INVEST:
@@ -33,13 +41,54 @@ class Day {
                 myGame.drawText("Vote to decide on the fate of player to be executed.");
 
                 //Allowing 30 seconds to decide on the player to execute
-                if (millis() - timer > 30e3)
-                    changePlayState(PlayState.LYNCHING);
+                if (millis() - timer > 30e3) {
+                    //Ensuring that the votes are not retrieved an excess amount of times
+                    if (!voteFlag) {
+                        int numGuilty = 0, numInno = 0;
+
+                        //Retrieve all of the votes from players.
+                        ArrayList<String> votes = myGame.sendRequest("admin/votes");
+                        Votes allVotes = new Votes();
+
+                        for (String voteJSON : votes)
+                            allVotes.add(new Vote().fromJSON(voteJSON));
+
+                        //Counting all of the guilty and innocent votes.
+                        for (Vote vote : votes) {
+                            if (!vote.isNomination()) {
+                                if (vote.isGuilty()) numGuilty++;
+                                else numInno++;
+                            }
+                        }
+
+                        exePlayer = allVotes.get(0).getDefendant();
+                        subTimer = millis();
+                    }
+
+                    //Displaying the results of the voting on the host screen
+                    if (numGuilty > numInno)
+                        myGame.drawText(String.format("%s will be executed.\nThere were %d "
+                            + "guilty votes and %d innocent votes.", exePlayer.getName(),
+                            numGuilty, numInno));
+                    else
+                        myGame.drawText(String.format("%s has been pardoned.\nThere were %d "
+                            + "innocent votes and %d guilty votes.", exePlayer.getName(),
+                            numInno, numGuilty));
+
+                    //The results will be displayed for 10 seconds before switching
+                    //to the next state of play
+                    if (millis() - subTimer > 10e3) {
+                        if (numGuilty > numInno) 
+                            changePlayState(PlayState.LYNCHING);
+                        else
+                            changePlayState(PlayState.NIGHT);
+                    }
+                }
                 break;
             case LYNCHING:
                 //TODO
                 //Get the name of the player executed
-                myGame.drawText("Player Name has been executed!");
+                myGame.drawText(String.format("%s has been executed!", exePlayer.getName());
 
                 if (millis() - timer > 15e3)
                     changePlayState(PlayState.NIGHT);

@@ -1,5 +1,5 @@
 enum Verdict {
-    GUILTY, INNOCENT
+    GUILTY, INNOCENT, NOMINATION 
 }
 
 /*
@@ -18,6 +18,9 @@ class Vote {
     Player voter;
     Player against;
     Verdict decision;
+    String decisionString;
+
+    Vote() {}
 
     Vote(Player voter, Player against, Verdict decision) {
         this.voter = voter;
@@ -30,6 +33,18 @@ class Vote {
         this.decision = decision;
     }
 
+    boolean isGuilty() {
+        return this.decision == Verdict.GUILTY;
+    }
+
+    boolean isNomination() {
+        return this.decision == Verdict.NOMINATION;
+    }
+
+    Player getDefendant() {
+        return against;
+    }
+
     JSONObject toJSON() {
         JSONObject retJSON = new JSONObject();
         retJSON.setString("voter", voter.getName());
@@ -37,4 +52,17 @@ class Vote {
         retJSON.setString("decision", decision.name());
         return retJSON;
     }
+
+    Vote fromJSON(String source) {
+        Vote retVote = new Vote();
+        JSONObject voteJSON = parseJSONObject(source);
+
+        retVote.voter = myGame.getPlayerMap().get(voteJSON.getString("voter"));
+        retVote.against = myGame.getPlayerMap().get(voteJSON.getString("against"));
+        retVote.decisionString = voteJSON.getString("decision");
+        retVote.decision = Verdict.valueOf(retVote.decisionString);
+
+        return retVote;
+    }
+
 }

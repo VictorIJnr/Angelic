@@ -257,11 +257,19 @@ class Game {
         return hostGame.postData(endpoint, data);
     }
 
+    void setExePlayer() {
+
+    }
+
     PlayState getPlayState() {
         return myPlayState;
     }
 
     Day getDay() {
         return myDay;
+    }
+
+    HashMap<String, Player> getPlayerMap() {
+        return allPlayers;
     }
 }

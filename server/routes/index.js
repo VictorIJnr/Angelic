@@ -121,7 +121,19 @@ router.post("/:room/admin/players/states", function(req, res) {
 */
 router.post("/:room/admin/killer", function(req, res) {
     uploadJSON(req.param.room, "Killer", req.body.killer).then(res.send(req.body.killer));
-})
+});
+
+/**
+ * Endpoint to retrieve all of the submitted votes. 
+*/
+router.get("/:room/admin/votes", function(req, res) {
+    getStateFile(req.params.room)
+    .then((state) => {
+        getFile(req.params.room, `Day ${state.day} Voting.json`)
+        .then((votes) => res.send(votes))
+        .catch((err) => res.send(err));
+    });
+});
 
 /** 
  * Endpoint to retrieve a list of all the connected players
