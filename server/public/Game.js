@@ -5,10 +5,13 @@ class Game {
         this.lastPing = millis();
         this.pingDelta = 100; //Time between pinging server state
 
+        this.deploy = "https://ripgod.herokuapp.com";
+        // this.deploy = "http://localhost:20793";
+
         this.userInput = createInput();
         this.player = new Player();
         this.room = window.location.pathname.substring(1);
-        this.endpoint = `http://localhost:20793/${this.room}`;
+        this.endpoint = `${this.deploy}/${this.room}`;
 
         this.myDay = new Day();
 
