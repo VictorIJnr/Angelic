@@ -11,6 +11,7 @@ static final int TITLE_TEXT_SIZE = (isSpectre) ? 56 : 20;
 
 Game myGame;
 PFont myFont;
+PImage myBG;
 
 void setup() {
     //Setting up the game screen to be rendered appropriately
@@ -28,10 +29,12 @@ void setup() {
     imageMode(CENTER);
     
     myGame = new Game();
+
+    myBG = loadImage("backy.png");
 }
 
 void draw() {
-    background(#f7f1e3);
+    background(myBG);
     // background(#FFEAA7);
     
     beginCamera();

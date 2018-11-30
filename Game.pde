@@ -33,7 +33,7 @@ class Game {
     }
 
     void update() {
-        fill(51);
+        fill(Button.DEFAULT_TEXT_FILL);
         textSize(TEXT_SIZE);
         ping();
     }
@@ -106,7 +106,7 @@ class Game {
     */
     void drawText(String displayText) {
         rectMode(CENTER);
-        fill(51);
+        fill(Button.DEFAULT_TEXT_FILL);
         text(displayText, width / 2, height / 2, width * 0.75, height * 0.5); 
         rectMode(CORNER);
     }

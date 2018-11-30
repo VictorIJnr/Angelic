@@ -143,7 +143,7 @@ class Game {
 
     drawText(displayText) {
         rectMode(CENTER);
-        fill(51);
+        fill("#FFEAAF");
         text(displayText, width / 2, height / 2, width * 0.75, height / 2); 
     }
 
