@@ -150,6 +150,9 @@ class Game {
         if (myState == GameState.HOSTING) hostGame.mouseClick();
     }
 
+    /**
+    * Updates both the Game and Play state stored on the server
+    */
     void updateStates(GameState newGameState, PlayState newPlayState) {
         myState = (newGameState != null) ? newGameState : myState;
         myPlayState = (newPlayState != null) ? newPlayState : myPlayState;

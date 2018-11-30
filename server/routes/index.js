@@ -136,6 +136,18 @@ router.get("/:room/admin/votes", function(req, res) {
     });
 });
 
+/**
+ * Endpoint to retrieve all of the submitted nominations. 
+*/
+router.get("/:room/admin/nominations", function(req, res) {
+    getStateFile(req.params.room)
+    .then((state) => {
+        getFile(req.params.room, `Day ${state.day} Nominations.json`)
+        .then((votes) => res.send(votes))
+        .catch((err) => res.send(err));
+    });
+});
+
 /** 
  * Endpoint to retrieve a list of all the connected players
 */
