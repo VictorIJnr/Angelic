@@ -39,15 +39,6 @@ void draw() {
     endCamera();
 }
 
-
-void keyPressed() {
-    myGame.keyPress();
-}
-
-void keyReleased() {
-    myGame.keyRelease();
-}
-
 void mouseClicked() {
     myGame.mouseClick();
 }

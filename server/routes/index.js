@@ -325,7 +325,24 @@ router.post("/:room/vote", function(req, res) {
  * Endpoint to let the killer angel decide on the human they are going to murder 
 */
 router.post("/:room/kill", function(req, res) {
-    updateFile(req.params.room, req.body.playerName.toUpperCase(), {isAlive: false})
+    let killedPlayer = req.body.playerName.toUpperCase();
+
+    getFile(req.params.room, "All Players").then((players) => {
+        let index = 0;
+        let updatePlayer = {};
+
+        players.forEach(player => {
+            if (player.name === killedPlayer) {
+                updatePlayer = player;
+                updatePlayer.isAlive = false;
+            } 
+            index++;
+        });
+
+        players[index] = updatePlayer;
+        uploadJSON(req.params.room, "All Players", players);
+    });
+    updateFile(req.params.room, killedPlayer, {isAlive: false})
     .then(res.send("Sent kill signal"));
 });
 

@@ -8,6 +8,8 @@ class Day {
     boolean nomFlag = false;
     boolean voteFlag = false;
     boolean resetFlag = false;
+
+    boolean angelWin = false;
     
     //The player who has been convicted of murder
     Player nomPlayer;
@@ -76,13 +78,42 @@ class Day {
                 myGame.drawText("It's the night time, everyone goes to sleep, apart from one angel...");
 
                 //Give the angel(s) enough time to decide who to kill
-                if (millis() - timer > 25e3) {
+                if (millis() - timer > 15e3) {
                     // update the players for myGame such that the murdered player (if any) dies
                     resetFlag = false;
+
+                    //Get the player that died here
                     changePlayState(PlayState.NEWS);
                 }
                 break;
         }
+    }
+
+    /*
+    * Queries the server for the current state of all the connected players
+    * and stores all the players into and ArrayList
+    */
+    ArrayList<Player> getAllPlayers() {
+        ArrayList<String> playerJSONs = myGame.sendRequest("players/states");
+        ArrayList<Player> allPlayers = new ArrayList<Player>();
+
+        //If an array of players was returned
+        if (playerJSONs.get(0).startsWith("[")) {
+            JSONArray playerArray = parseJSONArray(playerJSONs.get(0));
+            for (int i = 0; i < playerArray.size(); i++) {
+                JSONObject json = playerArray.getJSONObject(i);
+
+                Player foo = new Player().fromJSON(json);
+                allPlayers.add(foo);
+            }
+        }
+        else {
+            System.out.println(playerJSONs.get(0));
+            Player foo = new Player().fromJSON(playerJSONs.get(0));
+            allPlayers.add(foo);
+        }
+
+        return allPlayers;
     }
 
     /*
@@ -226,28 +257,58 @@ class Day {
     * player to kill that night
     */
     void selectKiller() {
-        ArrayList<String> playerJSONs = myGame.sendRequest("players/states");
-        ArrayList<Player> allAngels = new ArrayList<Player>();
+        ArrayList<Player> allAngels = getAllPlayers();
 
-        JSONArray playerArray = parseJSONArray(playerJSONs.get(0));
+        Iterator<Player> playerIter = allAngels.iterator();
+        while (playerIter.hasNext())
+            if (!playerIter.next().isAngel()) playerIter.remove();
 
-        for (int i = 0; i < playerArray.size(); i++) {
-            JSONObject json = playerArray.getJSONObject(i);
-
-            Player foo = new Player().fromJSON(json);
-            if (foo.isAngel())
-                allAngels.add(foo);
-        }
-
-        //This is the only line where the selection is done, the rest just filter the players
+        //This is the only line where the selection is done,
+        //the previous just filters the players
         killer = allAngels.get((int) random(allAngels.size()));
         killer.setKiller(true);
         myGame.postData("admin/killer", killer.toJSON());
     }
 
+    /*
+    * Sets the killer flag for the previous day's killer to false
+    * and reflects the changes in the server
+    */
     void resetKiller() {
         killer.setKiller(false);
         myGame.postData("admin/killer", killer.toJSON());
+    }
+
+    void updateMurderVictim() {
+
+    }
+
+    /*
+    * Determines if either of the groups of players have won the game
+    */
+    void checkGameWon() {
+        ArrayList<Player> allPlayers = getAllPlayers();
+        int angelPop = 0, humanPop = 0;
+
+        System.out.println("\n" + myGame.myPlayState);
+        
+        for (Player player : allPlayers) {
+            if (player.isAngel() && player.isAlive()) angelPop++;
+            else if (!player.isAngel() && player.isAlive()) humanPop++;
+
+            if (!player.isAngel()) System.out.println(player.toJSON().toString());
+        }
+
+        System.out.println("Num Angels " + angelPop);
+        System.out.println("Num Humans " + humanPop);
+
+        if (angelPop == 0 || humanPop == 0) {
+            myGame.updateGameState(GameState.RESULTS);
+            
+            //This is fine as this statement won't ever be executed if there are 
+            //both humans and angels alive
+            myGame.setAngelWin(humanPop == 0);
+        }
     }
 
     void startTimer() {
@@ -256,6 +317,8 @@ class Day {
 
     void changePlayState(PlayState newPlayState) {
         myGame.updatePlayState(newPlayState);
+
+        checkGameWon();
         timer = millis();
     }
 

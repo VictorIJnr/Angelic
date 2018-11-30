@@ -49,6 +49,9 @@ class Game {
                 case "PLAYING":
                     this.myDay.draw();
                     break;
+                case "RESULTS":
+                    this.drawText("Look up at the screen to see the results...");
+                    break;
                 default:
                     if (typeof this.gameData.state != "undefined")
                         console.log(`State not handled...\n${this.gameData.state}`);

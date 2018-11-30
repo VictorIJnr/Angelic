@@ -36,6 +36,10 @@ class Player {
         return myRole == Roles.ANGEL;
     }
 
+    boolean isAlive() {
+        return isAlive;
+    }
+
     /*
     * Builds a player object from their equivalent JSON
     * Omitting the votes as they may not be required

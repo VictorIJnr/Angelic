@@ -18,6 +18,8 @@ class Game {
     int timer;
     int pingTimer;
 
+    boolean angelsWin = false;
+
     GameState myState = GameState.HOSTING;
     PlayState myPlayState = PlayState.NIGHT;
 
@@ -93,6 +95,8 @@ class Game {
                 myDay.draw();
                 break;
             case RESULTS:
+                if (angelsWin) drawText("The Angels won the game and killed the last human!");
+                else drawText("The Humans won the game!");
                 break;
         }
     }
@@ -117,33 +121,6 @@ class Game {
                 text(playerNames.get(i) + " joined the lobby.", width / 5, height * 0.1 + yMod);
             } 
         }
-    }
-
-    void keyPress() {
-        switch (key) {
-            case CODED: //Doesn't seem to work?
-            default:
-                switch(keyCode) {
-                    case ENTER:  
-                    case RETURN:
-                        System.out.println("Enter clicked");
-                        updateGameState(GameState.ROLES);
-                        allocateRoles();
-                        break;
-                    case TAB:
-                        System.out.println("Tab clicked");
-                        updateGameState(GameState.ROLES);
-                        allocateRoles();
-                        break;
-                    default:
-                        break;
-                }
-                break;
-        }
-    }
-
-    void keyRelease() {
-
     }
 
     void mouseClick() {
@@ -186,9 +163,9 @@ class Game {
         hostGame.sendRequest("admin/start");
         allocateRoles();
 
-        hostGame.postData("admin/players/states", new Player().listify(allPlayers));
-        updateGameState(GameState.ROLES);
+        updateAllPlayers(allPlayers);
 
+        updateGameState(GameState.ROLES);
         timer = millis();
     }
 
@@ -259,10 +236,6 @@ class Game {
         return hostGame.postData(endpoint, data);
     }
 
-    void setExePlayer() {
-
-    }
-
     PlayState getPlayState() {
         return myPlayState;
     }
@@ -277,5 +250,15 @@ class Game {
 
     void killPlayer(String playerName) {
         allPlayers.get(playerName).kill();
+        updateAllPlayers(allPlayers);
+    }
+
+    void setAngelWin(boolean haveAngelsWon) {
+        angelsWin = haveAngelsWon;
+    }
+
+    void updateAllPlayers(HashMap<String, Player> newPlayers) {
+        allPlayers = newPlayers;
+        hostGame.postData("admin/players/states", new Player().listify(newPlayers));
     }
 }
