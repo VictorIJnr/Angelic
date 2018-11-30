@@ -18,7 +18,8 @@ class Host {
     URL gameURL;
     URLConnection myConn;
     
-    String baseURL = "http://localhost:20793";
+    String baseURL = "https://ripgod.herokuapp.com";
+    // String baseURL = "http://localhost:20793";
 
     String gameRoom;
     boolean pinged = false;

@@ -2,6 +2,7 @@ class Day {
     constructor() {
         this.dayNo = 1;
         this.currPlayer = 0;
+        this.allAngels = [];
 
         //Button to allow a player to accuse a player of being guilty
         this.guiltyBtn = new Button(width * 0.25, height * 0.875, 200, 65, "Guilty", () => {
@@ -74,6 +75,7 @@ class Day {
         let gameData = myGame.getGameData();
         if (gameData.playState == "NEWS" && !this.pingedPlayers) {
             this.getPlayerStates();
+            this.getAngels();
             this.pingedPlayers = true;
         }
         else if (gameData.playState == "NIGHT" && this.pingedPlayers)
@@ -113,6 +115,7 @@ class Day {
 
         this.update();
         if (isAlive) this.drawButtons();
+        if (myGame.getPlayer().role === "ANGEL") this.drawAngels();
 
         // NEWS, NOMINATION, INVEST, VOTING, LYNCHING, NIGHT
 
@@ -183,6 +186,28 @@ class Day {
         // console.log("Retrieving player states");
         // console.log("Retrieving connected player names");
         myGame.getRequest("players").then((players) => myGame.updatePlayers(players))
+        .catch((err) => console.log(`Wait, you're just stupid...\n${err}`));
+    }
+
+    drawAngels() {
+        if (myGame.getPlayer().role === "ANGEL") {
+            text("Other Angels", width / 5, height * 0.5 - TEXT_SIZE * 2);
+            for (let i = 0; i < this.allAngels.length; i++) {
+                let yMod = TEXT_SIZE * 2 * i;
+
+                rectMode(CENTER);
+                text(this.allAngels[i], width / 5, height * 0.5 + yMod);
+            } 
+            text();
+        }
+    }
+
+    getAngels() {
+        myGame.getRequest("players/states").then((players) => {
+            players.forEach(player => {
+                if (player.role === "ANGEL") this.allAngels.push(player.name);
+            });
+        })
         .catch((err) => console.log(`Wait, you're just stupid...\n${err}`));
     }
 

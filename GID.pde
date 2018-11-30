@@ -15,10 +15,10 @@ PImage myBG;
 
 void setup() {
     //Setting up the game screen to be rendered appropriately
-    fullScreen(P3D);
-    surface.setResizable(true);
+    // surface.setResizable(true);
     focused = true;
-    if (!isSpectre) surface.setSize(1920, 1080);
+    // if (!isSpectre) surface.setSize(1920, 1080);
+    size(1920, 1080, P3D);
     
     fill(51);
     //noCursor();
