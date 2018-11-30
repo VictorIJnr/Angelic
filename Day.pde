@@ -26,6 +26,10 @@ class Day {
                     updateGameDay();
                     nomPlayer = null;
                     if (killer != null) resetKiller();
+                    
+                    //Ensuring the new killer is set before night, 
+                    //and they know who they are before then
+                    selectKiller();
                 }
 
                 //Give enough time to display the news
@@ -34,12 +38,14 @@ class Day {
                     changePlayState(PlayState.NOMINATION);
                 break;
             case NOMINATION:
-                myGame.drawText("Nominate a player to be executed.");
+                if (!nomFlag) myGame.drawText("Nominate a player to be executed.");
 
                 //Allowing 120 seconds for a nomination phase
-                if (millis() - timer > 1e3) 
-                // if (millis() - timer > 120e3) 
-                    changePlayState(PlayState.VOTING);
+                if (millis() - timer > 1e3) {
+                // if (millis() - timer > 120e3) { 
+                    closeNominations();
+                    nominationResults();
+                }
                 break;
             case INVEST:
                 //TODO add this
@@ -95,31 +101,63 @@ class Day {
         return retVotes;
     }
 
-    void closeNominations() {
-        if (!nomFlag) {
-            Votes allNoms = retrieveVotes();
-            HashMap<Player, Integer> nomCount = new HashMap<Player, Integer>();
+    HashMap<Player, Integer> getNominations() {
+        Votes allNoms = retrieveVotes();
+        HashMap<Player, Integer> nomCount = new HashMap<Player, Integer>();
 
-            //If the response yielded votes, determine the most nominated player
-            //If multiple are equally nominated, randomly select one
-            if (hasVotes(nominations)) {
-                //Counting nominations for all players.
-                for (Vote vote : allVotes) {
-                    if (vote.isNomination()) {
-                        Player current = vote.getDefendant();
-                        int total = (nomCount.containsKey(current)) 
-                            ? nomCount.get(current) : 0;
+        //If the response yielded votes, determine the most nominated player
+        //If multiple are equally nominated, randomly select one
+        if (!allNoms.isEmpty()) {
+            //Counting nominations for all players.
+            for (Vote nom : allNoms) {
+                if (nom.isNomination()) {
+                    Player current = nom.getDefendant();
+                    int total = (nomCount.containsKey(current)) 
+                        ? nomCount.get(current) : 0;
 
-                        nomCount.put(current, ++total);
-                    }
+                    nomCount.put(current, ++total);
                 }
             }
-            else {
-                numGuilty = -1;
-            }
+        }
+
+        return nomCount;
+    }
+
+    void closeNominations() {
+        if (!nomFlag) {
+            HashMap<Player, Integer> nomCount = getNominations();
             
+            if (!nomCount.isEmpty()) {
+                int mostNoms = -1;
+                for (Map.Entry<Player, Integer> entry : nomCount.entrySet())
+                    if (entry.getValue() > mostNoms) nomPlayer = entry.getKey();
+            }
+
             subTimer = millis();
             nomFlag = true;
+        }
+    }
+
+    void nominationResults() {
+        boolean nominated = nomPlayer != null;
+        HashMap<Player, Integer> allNoms = getNominations();
+        if (!nominated)
+            myGame.drawText(String.format("No one will be executed today as "
+                + "nobody was convicted."));
+        else
+            myGame.drawText(String.format("%s has been convicted.\nThere were %d "
+                + "convictions against them.", nomPlayer.getName(), allNoms.get(nomPlayer)));
+        
+        //The results will be displayed for 10 seconds before switching
+        //to the next state of play
+        if (millis() - subTimer > 2e3) {
+        // if (millis() - subTimer > 10e3) {
+            nomFlag = false;
+
+            if (nominated) 
+                changePlayState(PlayState.VOTING);
+            else
+                changePlayState(PlayState.NIGHT);
         }
     }
 
@@ -156,6 +194,8 @@ class Day {
     * Displaying the results of the voting on the host screen
     */
     void votingResults() {
+        // myGame.drawText(String.format("%s will not be executed today as "
+        //         + "nobody voted.", exePlayer.getName()));
         if (numGuilty == -1)
             myGame.drawText(String.format("No one will be executed today as "
                 + "nobody voted."));
@@ -172,9 +212,6 @@ class Day {
         //to the next state of play
         if (millis() - subTimer > 2e3) {
         // if (millis() - subTimer > 10e3) {
-            //This is called here to ensure the murdering Angel is chosen before the nighttime  
-            selectKiller();
-            nomFlag = false;
             voteFlag = false;
 
             if (numGuilty > numInno) 
@@ -205,6 +242,7 @@ class Day {
         //This is the only line where the selection is done, the rest just filter the players
         killer = allAngels.get((int) random(allAngels.size()));
         killer.setKiller(true);
+        myGame.postData("admin/killer", killer.toJSON());
     }
 
     void resetKiller() {
@@ -231,8 +269,8 @@ class Day {
     */
     void updateGameDay() {
         JSONObject reqBody = new JSONObject();
-        reqBody.setString("day", dayNum);
-        hostGame.postData("admin/state", reqBody);
+        reqBody.setInt("day", dayNum);
+        myGame.postData("admin/state", reqBody);
 
         dayNum++;
         resetFlag = true;
