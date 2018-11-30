@@ -148,7 +148,6 @@ class Game {
 
     void mouseClick() {
         if (myState == GameState.HOSTING) hostGame.mouseClick();
-        if (myState == GameState.PLAYING) myDay.mouseClick();
     }
 
     void updateStates(GameState newGameState, PlayState newPlayState) {

@@ -138,9 +138,12 @@ class Day {
                 myGame.drawText("Player Name was executed!");
                 break;
             case "NIGHT":
-                if (myGame.getPlayer().isKiller)
-                    myGame.drawText("You've been appointed by God to kill a human."
-                        + "\nGo ahead and choose...");
+                if (myGame.getPlayer().isKiller) {
+                    text("You've been appointed by God to kill a human."
+                        + "\nGo ahead and choose...", width / 2, height / 5,
+                        width * 0.75, height / 2);
+                    myGame.drawText(`${this.getPlayer()}`);
+                }
             default:
                 if (!isAlive) myGame.drawText("You have died");
                 break;
@@ -164,8 +167,12 @@ class Day {
                     this.nextPlayer.mouseClick();
                     this.prevPlayer.mouseClick();
                     break;
-                case "NIGHT":
-                    if (myGame.getPlayer().isKiller) this.kill.mouseClick();
+                    case "NIGHT":
+                    if (myGame.getPlayer().isKiller) {
+                        this.kill.mouseClick();
+                        this.nextPlayer.mouseClick();
+                        this.prevPlayer.mouseClick();
+                    }
                 default:
                     break;
             }
@@ -174,7 +181,7 @@ class Day {
 
     getPlayerStates() {
         // console.log("Retrieving player states");
-        console.log("Retrieving connected player names");
+        // console.log("Retrieving connected player names");
         myGame.getRequest("players").then((players) => myGame.updatePlayers(players))
         .catch((err) => console.log(`Wait, you're just stupid...\n${err}`));
     }

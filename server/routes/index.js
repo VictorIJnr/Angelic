@@ -120,14 +120,8 @@ router.post("/:room/admin/players/states", function(req, res) {
  * Endpoint to update the angel to use as a killer
 */
 router.post("/:room/admin/killer", function(req, res) {
-    roomOutput("SETTING UP THE KILLER RIGHT HERE FAM");
-    console.log(req.body);
+    roomOutput(req.params.room, "SETTING UP THE KILLER RIGHT HERE FAM");
     uploadJSON(req.params.room, req.body.name.toUpperCase(), req.body).then(res.send(req.body));
-});
-
-router.post("/:room/admin/kek", function(req, res) {
-    roomOutput("( ͡° ͜ʖ ͡°)");
-    res.send("YOU JUST GOT FUCKED M80");
 });
 
 /**
@@ -342,7 +336,8 @@ function getPlayerNames(room) {
                 data.Contents.forEach((file) => {
                     //Removing the room name and following "/"
                     let fileName = file.Key.substring(6);
-                    if (fileName != `${demoFile}` && !fileName.includes("Voting"))
+                    if (fileName != `${demoFile}` && !fileName.includes("Voting") 
+                        && fileName !== ("All Players"))
                         players.push(fileName);
                 });
     

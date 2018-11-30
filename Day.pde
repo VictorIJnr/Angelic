@@ -1,5 +1,4 @@
 class Day {
-    ActionButton voteButton;
     int dayNum = 1;
     
     int timer;
@@ -14,11 +13,6 @@ class Day {
     //The angel to murder another player at night.
     Player killer;
 
-    Day() {
-        voteButton = new ActionButton(Action.END_VOTING, new PVector(width / 2, height / 2));
-    }
-
-    // NEWS, ANGELIC, AZREAL, VOTING, LYNCHING, NIGHT
     void draw() {
         switch (myGame.getPlayState()) {
             case NEWS:
@@ -51,59 +45,8 @@ class Day {
                 if (millis() - timer > 3e3) {
                 // if (millis() - timer > 30e3) {
                     //Ensuring that the votes are not retrieved an excess amount of times
-                    if (!voteFlag) {
-
-                        //Retrieve all of the votes from players.
-                        ArrayList<String> votes = myGame.sendRequest("admin/votes");
-                        Votes allVotes = new Votes();
-
-                        if (hasVotes(votes)) {
-                            for (String voteJSON : votes)
-                            allVotes.add(new Vote().fromJSON(voteJSON));
-                        
-                            //Counting all of the guilty and innocent votes.
-                            for (Vote vote : allVotes) {
-                                if (!vote.isNomination()) {
-                                    if (vote.isGuilty()) numGuilty++;
-                                    else numInno++;
-                                }
-                            }
-
-                            exePlayer = allVotes.get(0).getDefendant();
-                        }
-                        else {
-                            numGuilty = -1;
-                        }
-                        
-                        subTimer = millis();
-                        voteFlag = true;
-                    }
-
-                    //Displaying the results of the voting on the host screen
-                    if (numGuilty == -1)
-                        myGame.drawText(String.format("No one will be executed today as "
-                            + "nobody voted."));
-                    else if (numGuilty > numInno)
-                        myGame.drawText(String.format("%s will be executed.\nThere were %d "
-                            + "guilty votes and %d innocent votes.", exePlayer.getName(),
-                            numGuilty, numInno));
-                    else
-                        myGame.drawText(String.format("%s has been pardoned.\nThere were %d "
-                            + "innocent votes and %d guilty votes.", exePlayer.getName(),
-                            numInno, numGuilty));
-
-                    //The results will be displayed for 10 seconds before switching
-                    //to the next state of play
-                    if (millis() - subTimer > 10e3) {
-                        //This is called here to ensure the murdering Angel is chosen before the nighttime  
-                        selectKiller();
-                        voteFlag = false;
-
-                        if (numGuilty > numInno) 
-                            changePlayState(PlayState.LYNCHING);
-                        else
-                            changePlayState(PlayState.NIGHT);
-                    }
+                    stopVoting();
+                    votingResults();
                 }
                 break;
             case LYNCHING:
@@ -122,6 +65,7 @@ class Day {
 
                 //Give the angel(s) enough time to decide who to kill
                 if (millis() - timer > 25e3) {
+                    dayNum++;
                     // update the players for myGame such that the murdered player (if any) dies
                     changePlayState(PlayState.NEWS);
                 }
@@ -134,8 +78,64 @@ class Day {
     * player will be lynched
     */
     void stopVoting() {
-        ArrayList<String> response = myGame.sendRequest("admin/votes");
-        myGame.updatePlayState(PlayState.LYNCHING);
+        if (!voteFlag) {
+            //Retrieve all of the votes from players.
+            ArrayList<String> votes = myGame.sendRequest("admin/votes");
+            Votes allVotes = new Votes();
+
+            //If the response yielded votes, determine whether the nominated player is innocent
+            if (hasVotes(votes)) {
+                for (String voteJSON : votes)
+                allVotes.add(new Vote().fromJSON(voteJSON));
+            
+                //Counting all of the guilty and innocent votes.
+                for (Vote vote : allVotes) {
+                    if (!vote.isNomination()) {
+                        if (vote.isGuilty()) numGuilty++;
+                        else numInno++;
+                    }
+                }
+
+                exePlayer = allVotes.get(0).getDefendant();
+            }
+            else {
+                numGuilty = -1;
+            }
+            
+            subTimer = millis();
+            voteFlag = true;
+        }
+    }
+
+    /*
+    * Displaying the results of the voting on the host screen
+    */
+    void votingResults() {
+        if (numGuilty == -1)
+            myGame.drawText(String.format("No one will be executed today as "
+                + "nobody voted."));
+        else if (numGuilty > numInno)
+            myGame.drawText(String.format("%s will be executed.\nThere were %d "
+                + "guilty votes and %d innocent votes.", exePlayer.getName(),
+                numGuilty, numInno));
+        else
+            myGame.drawText(String.format("%s has been pardoned.\nThere were %d "
+                + "innocent votes and %d guilty votes.", exePlayer.getName(),
+                numInno, numGuilty));
+
+        //The results will be displayed for 10 seconds before switching
+        //to the next state of play
+        if (millis() - subTimer > 2e3) {
+        // if (millis() - subTimer > 10e3) {
+            //This is called here to ensure the murdering Angel is chosen before the nighttime  
+            selectKiller();
+            voteFlag = false;
+
+            if (numGuilty > numInno) 
+                changePlayState(PlayState.LYNCHING);
+            else
+                changePlayState(PlayState.NIGHT);
+        }
     }
 
     /*
@@ -146,8 +146,11 @@ class Day {
         ArrayList<String> playerJSONs = myGame.sendRequest("players/states");
         ArrayList<Player> allAngels = new ArrayList<Player>();
 
-        for (String json : playerJSONs) {
-            System.out.println(json);
+        JSONArray playerArray = parseJSONArray(playerJSONs.get(0));
+
+        for (int i = 0; i < playerArray.size(); i++) {
+            JSONObject json = playerArray.getJSONObject(i);
+
             Player foo = new Player().fromJSON(json);
             if (foo.isAngel())
                 allAngels.add(foo);
@@ -158,7 +161,7 @@ class Day {
         killer.setKiller(true);
 
         ArrayList<String> res;
-        res = myGame.postData("admin/kek", killer.toJSON());
+        res = myGame.postData("admin/killer", killer.toJSON());
 
         for (String line : res) {
             System.out.println(line);
@@ -167,11 +170,7 @@ class Day {
 
     void resetKiller() {
         killer.setKiller(false);
-        myGame.postData("admin/kek", killer.toJSON());
-    }
-
-    void mouseClick() {
-        voteButton.mouseClicked();
+        myGame.postData("admin/killer", killer.toJSON());
     }
 
     void startTimer() {

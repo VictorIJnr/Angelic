@@ -3,7 +3,7 @@ class Game {
         this.gameData;
         this.allPlayers = {};
         this.lastPing = millis();
-        this.pingDelta = 1000; //Time between pinging server state
+        this.pingDelta = 100; //Time between pinging server state
 
         this.userInput = createInput();
         this.player = new Player();
