@@ -35,7 +35,7 @@ class Day {
                 }
 
                 //Give enough time to display the news
-                if (millis() - timer > 1e3) 
+                if (millis() - timer > 10e3) 
                 // if (millis() - timer > 10e3) 
                     changePlayState(PlayState.NOMINATION);
                 break;
@@ -43,7 +43,7 @@ class Day {
                 if (!nomFlag) myGame.drawText("Nominate a player to be executed.");
 
                 //Allowing 120 seconds for a nomination phase
-                if (millis() - timer > 1e3) {
+                if (millis() - timer > 10e3) {
                 // if (millis() - timer > 120e3) { 
                     closeNominations();
                     nominationResults();
@@ -56,7 +56,8 @@ class Day {
                 if (!voteFlag) myGame.drawText("Vote to decide on the fate of player to be executed.");
 
                 //Allowing 30 seconds to decide on the player to execute
-                if (millis() - timer > 3e3) {
+                if (millis() - timer > 10e3) {
+                // if (millis() - timer > 3e3) {
                 // if (millis() - timer > 30e3) {
                     //Ensuring that the votes are not retrieved an excess amount of times
                     stopVoting();
