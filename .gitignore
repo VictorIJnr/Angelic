@@ -1,5 +1,6 @@
 node_modules/
 Slide
+Report.*
 *.autosave
 applet
 application.linux-arm64
