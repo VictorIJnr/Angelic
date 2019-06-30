@@ -37,3 +37,8 @@ For that, you need [Processing](https://processing.org/download/). So get that d
 Done? Good. Once you've got that, you'll want to open this up as a project in Processing. The next step is so intuitive that even a human could figure it out. Pressy press press big green button! Now you've got your server. Just tell everyone else to follow the instructions on the screen and you're good to go. Heads up, the phone client may take a while to load. That's fine, it's just Heroku doing it's own thing. <sup style="font-size: 0.4em">I could pay to make it quicker but I don't exactly have the funds to do that. Plust this doesn't exactly have a Fortnite audience does it?</sup>
 
 BUT. This working is dependent on me paying DigitalOcean. You see I set up room hosting in such a manner that it's stored on DigitalOcean. If I don't pay it, rooms can't be hosted. It's that simple. Sucks but if I don't have a need for DigitalOcean, this'll just be an unfortunate repercussion.
+
+## Eww Commitment
+You made it this far so I might as well come clean. Plus, I want to be transparent in case you ended up digging through my commits. Some of them are "fun". They're not for the faint of heart. If you're a professional or the like, don't take a look.* Otherwise, [go](https://github.com/VictorIJnr/Angelic/commit/4b9767370aab5d81bc98b9b409ee391f5196b6e9) [right](https://github.com/VictorIJnr/Angelic/commit/f56eaf5fb7825a9a464820c3d02079c400b09819) [ahead](https://github.com/VictorIJnr/Angelic/commit/1b08d38b19ab56e660a68016b3e81c5ec1d4ed2e).
+
+<sup style="font-size:0.6em">*This was a personal project. I don't keep everything professional here for that reason. I have fun here. In a different project I'd, obviously, be more, well, formal I guess.</sup>
